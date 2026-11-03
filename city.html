@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D 救急医療アクセス・マップ</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* フォント定義 & リセット */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+        
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #0b0f19;
+            color: #ffffff;
+        }
+
+        /* カスタム3Dキャンバス */
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* 
+           要求仕様：外枠がネイビー→紫→ライトグリーンに移り変わるグラデーションアニメーション
+           Navy (#000080 / #0f172a) -> Purple (#8b5cf6 / #a855f7) -> Light Green (#22c55e / #4ade80)
+        */
+        @keyframes borderGradientAnim {
+            0% {
+                border-color: #1e1b4b; /* Navy / Dark Indigo */
+                box-shadow: 0 0 15px rgba(30, 27, 75, 0.6), inset 0 0 10px rgba(30, 27, 75, 0.3);
+            }
+            33% {
+                border-color: #8b5cf6; /* Purple */
+                box-shadow: 0 0 18px rgba(139, 92, 246, 0.6), inset 0 0 10px rgba(139, 92, 246, 0.3);
+            }
+            66% {
+                border-color: #4ade80; /* Light Green */
+                box-shadow: 0 0 18px rgba(74, 222, 128, 0.6), inset 0 0 10px rgba(74, 222, 128, 0.3);
+            }
+            100% {
+                border-color: #1e1b4b; /* Navy */
+                box-shadow: 0 0 15px rgba(30, 27, 75, 0.6), inset 0 0 10px rgba(30, 27, 75, 0.3);
+            }
+        }
+
+        .animated-gradient-border {
+            border: 2px solid #8b5cf6;
+            animation: borderGradientAnim 6s infinite ease-in-out;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* カードのテーマ別スタイル */
+        .card-dark {
+            background: rgba(15, 23, 42, 0.82);
+            color: #f8fafc;
+        }
+        .card-light {
+            background: rgba(255, 255, 255, 0.88);
+            color: #0f172a;
+        }
+
+        /* スクロールバー非表示 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 3Dピン用の2Dオーバーレイ表示 */
+        .map-marker-label {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            pointer-events: auto;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.3s;
+            z-index: 10;
+        }
+        .map-marker-label:hover {
+            transform: translate(-50%, -110%) scale(1.08);
+        }
+
+        /* パルス波紋アニメーション */
+        @keyframes pulseRing {
+            0% { transform: scale(0.8); opacity: 0.9; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+        .pulse-effect::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: currentColor;
+            transform: translate(-50%, -50%);
+            animation: pulseRing 2s infinite ease-out;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay Layer -->
+    <div class="relative z-10 w-full h-full pointer-events-none flex flex-col justify-between p-3 sm:p-5">
+
+        <!-- Top Header -->
+        <div class="flex items-start justify-between w-full pointer-events-auto">
+            <!-- App Title Card -->
+            <div class="animated-gradient-border card-dark rounded-2xl p-3 sm:p-4 max-w-[280px] sm:max-w-xs transition-colors duration-500 id-theme-card">
+                <div class="flex items-center space-x-2 mb-1">
+                    <div class="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white shadow-lg">
+                        <i class="fa-solid font-bold fa-truck-medical text-base"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-sm sm:text-base font-black tracking-wide leading-tight">救急スマートナビ 3D</h1>
+                        <p class="text-[10px] sm:text-xs opacity-75">都市救急要請・搬送ルートシミュレーター</p>
+                    </div>
+                </div>
+                <p class="text-[11px] leading-tight opacity-80 mt-1 border-t border-white/10 pt-1.5">
+                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-1 animate-pulse"></span>
+                    リアルタイムアクセス状況可視化
+                </p>
+            </div>
+
+            <!-- Controls (Day/Night Mode Toggle & Help) -->
+            <div class="flex flex-col gap-2">
+                <button id="theme-toggle-btn" class="animated-gradient-border card-dark rounded-full w-11 h-11 flex items-center justify-center shadow-2xl active:scale-95 transition-all text-amber-400">
+                    <i id="theme-icon" class="fa-solid fa-moon text-lg"></i>
+                </button>
+                <button id="reset-cam-btn" class="animated-gradient-border card-dark rounded-full w-11 h-11 flex items-center justify-center shadow-2xl active:scale-95 transition-all text-blue-400" title="視点をリセット">
+                    <i class="fa-solid fa-compress text-base"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- HTML Overlay Markers on 3D Space (Dynamically position updated) -->
+        <div id="markers-container" class="absolute inset-0 pointer-events-none overflow-hidden">
+            <!-- Markers injected via JS -->
+        </div>
+
+        <!-- Center Selected Info Box (When tapped a location) -->
+        <div id="detail-modal" class="hidden pointer-events-auto self-center my-auto w-full max-w-sm animated-gradient-border card-dark rounded-2xl p-4 shadow-2xl transition-all transform scale-95">
+            <div class="flex justify-between items-start mb-2">
+                <div class="flex items-center space-x-2">
+                    <span id="modal-icon-bg" class="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        <i id="modal-icon" class="fa-solid fa-hospital"></i>
+                    </span>
+                    <div>
+                        <span id="modal-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">二次救急</span>
+                        <h2 id="modal-title" class="text-base font-bold leading-snug">施設名称</h2>
+                    </div>
+                </div>
+                <button id="modal-close" class="text-gray-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <div class="bg-black/20 rounded-lg p-2.5 flex justify-between items-center border border-white/5">
+                    <span class="opacity-80"><i class="fa-solid fa-clock text-amber-400 mr-1.5"></i>現場からの所要時間</span>
+                    <span id="modal-time" class="font-extrabold text-sm text-amber-400">約 -- 分</span>
+                </div>
+                <div id="modal-dept-container" class="bg-black/20 rounded-lg p-2.5 border border-white/5">
+                    <p class="opacity-70 text-[11px] mb-1"><i class="fa-solid fa-stethoscope text-indigo-400 mr-1.5"></i>対応診療科</p>
+                    <p id="modal-depts" class="font-medium leading-relaxed">---</p>
+                </div>
+                <p id="modal-desc" class="text-[11px] opacity-75 pt-1">説明文が入ります。</p>
+            </div>
+
+            <button id="modal-route-btn" class="w-full mt-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl text-xs shadow-lg active:scale-98 transition flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-route"></i>
+                <span>この病院への搬送ルートを表示</span>
+            </button>
+        </div>
+
+        <!-- Bottom Hospital Horizontal Selector Cards (Mobile Optimized) -->
+        <div class="w-full pointer-events-auto mt-auto">
+            <!-- Key Location Quick Switch Tabs -->
+            <div class="flex items-center space-x-2 mb-2 overflow-x-auto no-scrollbar pb-1 text-xs font-bold">
+                <button onclick="selectLocation('station')" class="px-3 py-1.5 rounded-full bg-red-600/90 text-white shadow-lg whitespace-nowrap flex items-center space-x-1.5 active:scale-95 transition">
+                    <i class="fa-solid fa-fire-extinguisher"></i>
+                    <span>消防署</span>
+                </button>
+                <button onclick="selectLocation('scene')" class="px-3 py-1.5 rounded-full bg-amber-500/90 text-slate-950 shadow-lg whitespace-nowrap flex items-center space-x-1.5 active:scale-95 transition">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>現場 (救急要請)</span>
+                </button>
+                <span class="text-white/40 text-xs">| 搬送候補病院 ↓</span>
+            </div>
+
+            <!-- Hospitals Horizontal Carousel Card Slider -->
+            <div class="flex space-x-3 overflow-x-auto no-scrollbar py-1 px-0.5 snap-x snap-mandatory">
+                
+                <!-- Hospital 1: A市立総合医療センター -->
+                <div onclick="selectLocation('hospA')" class="snap-center shrink-0 w-64 animated-gradient-border card-dark rounded-xl p-3 cursor-pointer hover:border-emerald-400 transition-all id-hosp-card" id="card-hospA">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300">3次救急 / 救命センター</span>
+                        <span class="text-xs font-black text-amber-400"><i class="fa-solid fa-car text-[10px] mr-1"></i>約25分</span>
+                    </div>
+                    <h3 class="font-bold text-sm truncate">A市立総合医療センター</h3>
+                    <p class="text-[11px] opacity-70 truncate mt-0.5">高度救命救急・重症患者対応</p>
+                </div>
+
+                <!-- Hospital 2: A市脳神経外科病院 -->
+                <div onclick="selectLocation('hospB')" class="snap-center shrink-0 w-64 animated-gradient-border card-dark rounded-xl p-3 cursor-pointer hover:border-emerald-400 transition-all id-hosp-card" id="card-hospB">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300">二次救急</span>
+                        <span class="text-xs font-black text-amber-400"><i class="fa-solid fa-car text-[10px] mr-1"></i>約10分</span>
+                    </div>
+                    <h3 class="font-bold text-sm truncate">A市脳神経外科病院</h3>
+                    <p class="text-[11px] opacity-70 truncate mt-0.5">脳神経外科 / 脳神経内科 / 外科</p>
+                </div>
+
+                <!-- Hospital 3: 南A病院 -->
+                <div onclick="selectLocation('hospC')" class="snap-center shrink-0 w-64 animated-gradient-border card-dark rounded-xl p-3 cursor-pointer hover:border-emerald-400 transition-all id-hosp-card" id="card-hospC">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300">二次救急</span>
+                        <span class="text-xs font-black text-amber-400"><i class="fa-solid fa-car text-[10px] mr-1"></i>約12分</span>
+                    </div>
+                    <h3 class="font-bold text-sm truncate">南A病院</h3>
+                    <p class="text-[11px] opacity-70 truncate mt-0.5">消化器内科 / 一般外科 / 整形外科</p>
+                </div>
+
+                <!-- Hospital 4: A市中央病院 -->
+                <div onclick="selectLocation('hospD')" class="snap-center shrink-0 w-64 animated-gradient-border card-dark rounded-xl p-3 cursor-pointer hover:border-emerald-400 transition-all id-hosp-card" id="card-hospD">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300">二次救急</span>
+                        <span class="text-xs font-black text-amber-400"><i class="fa-solid fa-car text-[10px] mr-1"></i>約15分</span>
+                    </div>
+                    <h3 class="font-bold text-sm truncate">A市中央病院</h3>
+                    <p class="text-[11px] opacity-70 truncate mt-0.5">循環器内科 / 心臓血管外科 / 内科</p>
+                </div>
+
+                <!-- Hospital 5: 西Z病院 -->
+                <div onclick="selectLocation('hospE')" class="snap-center shrink-0 w-64 animated-gradient-border card-dark rounded-xl p-3 cursor-pointer hover:border-emerald-400 transition-all id-hosp-card" id="card-hospE">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300">二次救急</span>
+                        <span class="text-xs font-black text-amber-400"><i class="fa-solid fa-car text-[10px] mr-1"></i>約18分</span>
+                    </div>
+                    <h3 class="font-bold text-sm truncate">西Z病院</h3>
+                    <p class="text-[11px] opacity-70 truncate mt-0.5">整形外科 / リハビリテーション科</p>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MAIN SCRIPT -->
+    <script>
+        /**
+         * 地理データ・施設マスターデータ
+         * 3Dワールド座標 (X, Y, Z) マッピング
+         */
+        const LOCATIONS = {
+            station: {
+                id: 'station',
+                name: '中央消防署',
+                type: '消防署',
+                badgeClass: 'bg-red-500/20 text-red-300',
+                icon: 'fa-fire-extinguisher',
+                color: '#ef4444',
+                pos: new THREE.Vector3(-35, 0, 30),
+                desc: '救急要請出動拠点。現場まで 距離 3.5 km / 所要時間 約6分',
+                time: '現場まで約6分 (3.5km)',
+                depts: '消防・救急隊（24時間運用）'
+            },
+            scene: {
+                id: 'scene',
+                name: '救急要請現場',
+                type: '事故発生地',
+                badgeClass: 'bg-amber-500/20 text-amber-300',
+                icon: 'fa-triangle-exclamation',
+                color: '#f59e0b',
+                pos: new THREE.Vector3(0, 0, 0), // 原点に設定
+                desc: '傷病者発生現場。消防署から 3.5km (車で約6分)',
+                time: '消防署から約6分',
+                depts: '至急搬送先病院の選定が必要'
+            },
+            hospA: {
+                id: 'hospA',
+                name: 'A市立総合医療センター',
+                type: '三次救急・救命センター',
+                badgeClass: 'bg-rose-500/20 text-rose-300',
+                icon: 'fa-hospital-user',
+                color: '#f43f5e',
+                pos: new THREE.Vector3(65, 0, -50),
+                desc: '重症・重篤患者に対応する三次救急指定医療機関。最先端救命設備を完備。',
+                time: '現場から車で約25分',
+                depts: '高度救命救急センター, 全診療科'
+            },
+            hospB: {
+                id: 'hospB',
+                name: 'A市脳神経外科病院',
+                type: '二次救急',
+                badgeClass: 'bg-sky-500/20 text-sky-300',
+                icon: 'fa-brain',
+                color: '#06b6d4',
+                pos: new THREE.Vector3(-25, 0, -35),
+                desc: '脳卒中や頭部外傷等の専門緊急手術に対応可能な脳神経専門病院。',
+                time: '現場から車で約10分',
+                depts: '脳神経外科、脳神経内科、外科'
+            },
+            hospC: {
+                id: 'hospC',
+                name: '南A病院',
+                type: '二次救急',
+                badgeClass: 'bg-sky-500/20 text-sky-300',
+                icon: 'fa-hospital',
+                color: '#3b82f6',
+                pos: new THREE.Vector3(30, 0, 45),
+                desc: '消化器・外科系・整形外科の緊急ケアに対応する地域基幹病院。',
+                time: '現場から車で約12分',
+                depts: '消化器内科、一般外科、整形外科'
+            },
+            hospD: {
+                id: 'hospD',
+                name: 'A市中央病院',
+                type: '二次救急',
+                badgeClass: 'bg-sky-500/20 text-sky-300',
+                icon: 'fa-heart-pulse',
+                color: '#8b5cf6',
+                pos: new THREE.Vector3(-55, 0, -10),
+                desc: '心筋梗塞や循環器系急患の急性期治療に特化した二次救急病院。',
+                time: '現場から車で約15分',
+                depts: '循環器内科、心臓血管外科、内科'
+            },
+            hospE: {
+                id: 'hospE',
+                name: '西Z病院',
+                type: '二次救急',
+                badgeClass: 'bg-sky-500/20 text-sky-300',
+                icon: 'fa-bone',
+                color: '#10b981',
+                pos: new THREE.Vector3(-60, 0, 50),
+                desc: '骨折や運動器系外傷、初期リハビリテーション対応病院。',
+                time: '現場から車で約18分',
+                depts: '整形外科、リハビリテーション科'
+            }
+        };
+
+        // アプリケーション状態変数
+        let scene, camera, renderer, controls;
+        let isNightMode = true;
+        let selectedLocationId = null;
+        const markerElements = {};
+        let rainbowRouteMesh = null;
+        let activeHospRouteMesh = null;
+        let ambulanceMesh = null;
+        let animProgress = 0;
+        let currentHospCurve = null;
+
+        // ライティング参照
+        let ambientLight, dirLight, hemiLight;
+        let buildingMaterials = [];
+        let roadMaterials = [];
+
+        // DOM要素参照
+        const container = document.getElementById('canvas-container');
+        const markersContainer = document.getElementById('markers-container');
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        const themeIcon = document.getElementById('theme-icon');
+        const detailModal = document.getElementById('detail-modal');
+
+        // ウィンドウ初期化
+        window.addEventListener('load', () => {
+            initThreeJS();
+            createCityEnvironment();
+            createRainbowRoute();
+            createHTMLMarkers();
+            setupEvents();
+            animate();
+
+            // 初期カメラターゲット：救急現場
+            selectLocation('scene');
+        });
+
+        /**
+         * Three.js 基本セットアップ
+         */
+        function initThreeJS() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x0b0f19, 0.008);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+            camera.position.set(0, 65, 110);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // OrbitControls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2.15; // 地下に入らない制御
+            controls.minDistance = 20;
+            controls.maxDistance = 220;
+            controls.target.set(0, 0, 0);
+
+            // ライティング
+            ambientLight = new THREE.AmbientLight(0x1e293b, 0.8);
+            scene.add(ambientLight);
+
+            hemiLight = new THREE.HemisphereLight(0x38bdf8, 0x0f172a, 0.5);
+            hemiLight.position.set(0, 100, 0);
+            scene.add(hemiLight);
+
+            dirLight = new THREE.DirectionalLight(0x38bdf8, 1.2);
+            dirLight.position.set(50, 100, 50);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            scene.add(dirLight);
+        }
+
+        /**
+         * 都会感あふれる3Dシティビル群＆道路の動的生成
+         */
+        function createCityEnvironment() {
+            const gridGroup = new THREE.Group();
+
+            // 地面プレート
+            const groundGeo = new THREE.PlaneGeometry(300, 300);
+            const groundMat = new THREE.MeshStandardMaterial({
+                color: 0x0f172a,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            gridGroup.add(ground);
+
+            // 格子状道路ネットワーク
+            const roadMat = new THREE.MeshStandardMaterial({
+                color: 0x1e293b,
+                roughness: 0.5
+            });
+            roadMaterials.push(roadMat);
+
+            for (let i = -120; i <= 120; i += 20) {
+                // X軸道路
+                const rGeo1 = new THREE.PlaneGeometry(300, 4);
+                const rMesh1 = new THREE.Mesh(rGeo1, roadMat);
+                rMesh1.rotation.x = -Math.PI / 2;
+                rMesh1.position.set(0, 0.1, i);
+                gridGroup.add(rMesh1);
+
+                // Z軸道路
+                const rGeo2 = new THREE.PlaneGeometry(4, 300);
+                const rMesh2 = new THREE.Mesh(rGeo2, roadMat);
+                rMesh2.rotation.x = -Math.PI / 2;
+                rMesh2.position.set(i, 0.1, 0);
+                gridGroup.add(rMesh2);
+            }
+
+            // 都会ビル群のランダム生成（主要拠点周辺はスペース確保）
+            const buildingGeo = new THREE.BoxGeometry(1, 1, 1);
+            const mainPositions = Object.values(LOCATIONS).map(l => l.pos);
+
+            for (let x = -110; x <= 110; x += 15) {
+                for (let z = -110; z <= 110; z += 15) {
+                    // 道路交差点上の生成回避
+                    if (Math.abs(x % 20) < 5 || Math.abs(z % 20) < 5) continue;
+
+                    // 拠点地点との接近回避
+                    const currentPos = new THREE.Vector3(x, 0, z);
+                    const isNearMain = mainPositions.some(p => p.distanceTo(currentPos) < 14);
+                    if (isNearMain) continue;
+
+                    const height = Math.random() * 25 + 8;
+                    const width = Math.random() * 4 + 6;
+                    const depth = Math.random() * 4 + 6;
+
+                    // ビルマテリアル（夜間ネオン発光風窓付き）
+                    const bMat = new THREE.MeshStandardMaterial({
+                        color: isNightMode ? 0x1e293b : 0xe2e8f0,
+                        roughness: 0.3,
+                        metalness: 0.7
+                    });
+                    buildingMaterials.push(bMat);
+
+                    const bMesh = new THREE.Mesh(buildingGeo, bMat);
+                    bMesh.scale.set(width, height, depth);
+                    bMesh.position.set(x, height / 2, z);
+                    bMesh.castShadow = true;
+                    bMesh.receiveShadow = true;
+                    gridGroup.add(bMesh);
+
+                    // ビルの屋上装飾 / 天井発光ライン
+                    if (Math.random() > 0.5) {
+                        const topGeo = new THREE.BoxGeometry(width * 0.9, 0.5, depth * 0.9);
+                        const topMat = new THREE.MeshBasicMaterial({
+                            color: Math.random() > 0.5 ? 0x38bdf8 : 0x8b5cf6
+                        });
+                        const topMesh = new THREE.Mesh(topGeo, topMat);
+                        topMesh.position.set(x, height + 0.25, z);
+                        gridGroup.add(topMesh);
+                    }
+                }
+            }
+
+            scene.add(gridGroup);
+
+            // 各主要施設の3D台座・光柱の設置
+            Object.values(LOCATIONS).forEach(loc => {
+                createLocation3DPillar(loc);
+            });
+        }
+
+        /**
+         * 拠点（消防署・現場・病院）の3D空間用光柱＆ピン土台
+         */
+        function createLocation3DPillar(loc) {
+            const group = new THREE.Group();
+            group.position.copy(loc.pos);
+
+            // 円形土台
+            const baseGeo = new THREE.CylinderGeometry(4, 4.5, 0.8, 32);
+            const baseMat = new THREE.MeshStandardMaterial({
+                color: loc.color,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+            const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+            baseMesh.position.y = 0.4;
+            group.add(baseMesh);
+
+            // 垂直発光シリンダー（光柱）
+            const pillarGeo = new THREE.CylinderGeometry(0.8, 0.8, 25, 16);
+            const pillarMat = new THREE.MeshBasicMaterial({
+                color: loc.color,
+                transparent: true,
+                opacity: 0.35,
+                side: THREE.DoubleSide
+            });
+            const pillarMesh = new THREE.Mesh(pillarGeo, pillarMat);
+            pillarMesh.position.y = 12.5;
+            group.add(pillarMesh);
+
+            scene.add(group);
+        }
+
+        /**
+         * 消防署から現場までの【七色に移り変わるグラデーション光線】ルートの作成
+         */
+        function createRainbowRoute() {
+            const start = LOCATIONS.station.pos;
+            const end = LOCATIONS.scene.pos;
+
+            // 迂回のある滑らかな曲線（ウェイポイント）
+            const mid1 = new THREE.Vector3(-25, 0, 10);
+            const mid2 = new THREE.Vector3(-10, 0, 5);
+
+            const curve = new THREE.CatmullRomCurve3([start, mid1, mid2, end]);
+            const points = curve.getPoints(80);
+
+            const tubeGeo = new THREE.TubeGeometry(curve, 80, 0.7, 8, false);
+
+            // 虹色（七色）アニメーション用シェーダーマテリアル
+            const rainbowUniforms = {
+                uTime: { value: 0.0 }
+            };
+
+            const rainbowMat = new THREE.ShaderMaterial({
+                uniforms: rainbowUniforms,
+                vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float uTime;
+                    varying vec2 vUv;
+
+                    // 七色 (Rainbow) グラデーション関数
+                    vec3 rainbow(float t) {
+                        vec3 a = vec3(0.5, 0.5, 0.5);
+                        vec3 b = vec3(0.5, 0.5, 0.5);
+                        vec3 c = vec3(1.0, 1.0, 1.0);
+                        vec3 d = vec3(0.0, 0.33, 0.67);
+                        return a + b * cos(6.28318 * (c * t + d));
+                    }
+
+                    void main() {
+                        // UVに沿って時間が経過すると色が七色に移り変わる
+                        float shift = vUv.x - uTime * 0.4;
+                        vec3 col = rainbow(shift);
+                        gl_FragColor = vec4(col, 0.9);
+                    }
+                `,
+                transparent: true
+            });
+
+            rainbowRouteMesh = new THREE.Mesh(tubeGeo, rainbowMat);
+            rainbowRouteMesh.position.y = 0.5; // 地面より少し浮かす
+            rainbowRouteMesh.userData = { uniforms: rainbowUniforms };
+            scene.add(rainbowRouteMesh);
+        }
+
+        /**
+         * 現場から指定病院へのアクティブルーナ（ルート描画＆救急車走破）
+         */
+        function drawHospitalRoute(targetHosp) {
+            if (activeHospRouteMesh) {
+                scene.remove(activeHospRouteMesh);
+                activeHospRouteMesh = null;
+            }
+            if (ambulanceMesh) {
+                scene.remove(ambulanceMesh);
+                ambulanceMesh = null;
+            }
+
+            const start = LOCATIONS.scene.pos;
+            const end = targetHosp.pos;
+
+            // 中間迂回点の計算
+            const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+            mid.x += (Math.random() - 0.5) * 15;
+            mid.z += (Math.random() - 0.5) * 15;
+
+            currentHospCurve = new THREE.CatmullRomCurve3([start, mid, end]);
+            const tubeGeo = new THREE.TubeGeometry(currentHospCurve, 60, 0.5, 8, false);
+
+            const routeMat = new THREE.MeshStandardMaterial({
+                color: 0x38bdf8,
+                emissive: 0x0284c7,
+                emissiveIntensity: 0.8,
+                roughness: 0.2
+            });
+
+            activeHospRouteMesh = new THREE.Mesh(tubeGeo, routeMat);
+            activeHospRouteMesh.position.y = 0.5;
+            scene.add(activeHospRouteMesh);
+
+            // 救急車3Dオブジェクト（簡易メッシュ）
+            const ambGroup = new THREE.Group();
+            const ambBodyGeo = new THREE.BoxGeometry(2, 1.2, 3.5);
+            const ambBodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+            const ambBody = new THREE.Mesh(ambBodyGeo, ambBodyMat);
+            ambBody.position.y = 0.6;
+            ambGroup.add(ambBody);
+
+            // 赤色パトランプ
+            const lightGeo = new THREE.BoxGeometry(0.8, 0.3, 0.6);
+            const lightMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+            const light = new THREE.Mesh(lightGeo, lightMat);
+            light.position.set(0, 1.35, 0);
+            ambGroup.add(light);
+
+            ambulanceMesh = ambGroup;
+            scene.add(ambulanceMesh);
+            animProgress = 0;
+        }
+
+        /**
+         * 3D空間上の位置に追従するHTMLマーカー（UIラベル）の動的生成
+         */
+        function createHTMLMarkers() {
+            Object.values(LOCATIONS).forEach(loc => {
+                const el = document.createElement('div');
+                el.className = 'map-marker-label pointer-events-auto';
+                el.id = `marker-${loc.id}`;
+                el.onclick = () => selectLocation(loc.id);
+
+                el.innerHTML = `
+                    <div class="animated-gradient-border card-dark rounded-xl px-2.5 py-1.5 shadow-xl flex items-center space-x-2 whitespace-nowrap">
+                        <span class="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs pulse-effect" style="background-color: ${loc.color}">
+                            <i class="fa-solid ${loc.icon}"></i>
+                        </span>
+                        <div class="text-left">
+                            <p class="text-[10px] opacity-75 font-bold leading-none">${loc.type}</p>
+                            <p class="text-xs font-black leading-tight">${loc.name}</p>
+                        </div>
+                    </div>
+                `;
+
+                markersContainer.appendChild(el);
+                markerElements[loc.id] = el;
+            });
+        }
+
+        /**
+         * 毎フレームのHTMLマーカーの3D→2D座標変換更新
+         */
+        function updateHTMLMarkersPosition() {
+            const tempV = new THREE.Vector3();
+
+            Object.values(LOCATIONS).forEach(loc => {
+                const el = markerElements[loc.id];
+                if (!el) return;
+
+                // 光柱の頭上付近に配置
+                tempV.copy(loc.pos);
+                tempV.y += 18;
+
+                tempV.project(camera);
+
+                // カメラの背後にある場合は非表示
+                if (tempV.z > 1) {
+                    el.style.opacity = '0';
+                    return;
+                }
+
+                const x = (tempV.x *  .5 + .5) * window.innerWidth;
+                const y = (tempV.y * -.5 + .5) * window.innerHeight;
+
+                el.style.transform = `translate(-50%, -100%) translate(${x}px,${y}px)`;
+                el.style.opacity = '1';
+            });
+        }
+
+        /**
+         * 場所の選択・視点移動・詳細表示処理
+         */
+        function selectLocation(id) {
+            const loc = LOCATIONS[id];
+            if (!loc) return;
+
+            selectedLocationId = id;
+
+            // ハイライト選択カードの枠更新
+            document.querySelectorAll('.id-hosp-card').forEach(c => {
+                c.classList.remove('ring-2', 'ring-emerald-400');
+            });
+            const cardEl = document.getElementById(`card-${id}`);
+            if (cardEl) {
+                cardEl.classList.add('ring-2', 'ring-emerald-400');
+                cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+
+            // カメラのスムーズ移動 (GSAPライクなイージング移動)
+            const targetCamPos = new THREE.Vector3(
+                loc.pos.x + 15,
+                35,
+                loc.pos.z + 45
+            );
+
+            animateCamera(targetCamPos, loc.pos);
+
+            // 病院が選ばれた場合は現場からの救急搬送ルートを描画
+            if (id.startsWith('hosp')) {
+                drawHospitalRoute(loc);
+                showModal(loc);
+            } else if (id === 'station' || id === 'scene') {
+                showModal(loc);
+            }
+        }
+
+        /**
+         * モーダルダイアログの表示
+         */
+        function showModal(loc) {
+            document.getElementById('modal-title').innerText = loc.name;
+            document.getElementById('modal-badge').innerText = loc.type;
+            document.getElementById('modal-badge').className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${loc.badgeClass}`;
+            document.getElementById('modal-time').innerText = loc.time;
+            document.getElementById('modal-depts').innerText = loc.depts;
+            document.getElementById('modal-desc').innerText = loc.desc;
+
+            const iconBg = document.getElementById('modal-icon-bg');
+            iconBg.style.backgroundColor = loc.color;
+            document.getElementById('modal-icon').className = `fa-solid ${loc.icon}`;
+
+            const routeBtn = document.getElementById('modal-route-btn');
+            if (loc.id.startsWith('hosp')) {
+                routeBtn.classList.remove('hidden');
+                routeBtn.onclick = () => {
+                    drawHospitalRoute(loc);
+                    detailModal.classList.add('hidden');
+                };
+            } else {
+                routeBtn.classList.add('hidden');
+            }
+
+            detailModal.classList.remove('hidden');
+            detailModal.classList.remove('scale-95');
+            detailModal.classList.add('scale-100');
+        }
+
+        /**
+         * カメラアングル スムーズアニメーション
+         */
+        function animateCamera(targetPos, targetLookAt) {
+            const startPos = camera.position.clone();
+            const startTarget = controls.target.clone();
+            let progress = 0;
+
+            function step() {
+                progress += 0.04;
+                if (progress <= 1) {
+                    // Smoothstep イージング
+                    const t = progress * progress * (3 - 2 * progress);
+                    camera.position.lerpVectors(startPos, targetPos, t);
+                    controls.target.lerpVectors(startTarget, targetLookAt, t);
+                    controls.update();
+                    requestAnimationFrame(step);
+                }
+            }
+            step();
+        }
+
+        /**
+         * 昼版 / 夜版 テーマ切り替え
+         */
+        function toggleDayNightTheme() {
+            isNightMode = !isNightMode;
+
+            if (isNightMode) {
+                // 夜版（サイバーネオン風）
+                scene.fog.color.setHex(0x0b0f19);
+                renderer.setClearColor(0x0b0f19);
+                ambientLight.color.setHex(0x1e293b);
+                ambientLight.intensity = 0.8;
+                dirLight.intensity = 1.0;
+
+                themeIcon.className = "fa-solid fa-moon text-amber-400";
+                document.querySelectorAll('.id-theme-card, .animated-gradient-border').forEach(el => {
+                    el.classList.remove('card-light');
+                    el.classList.add('card-dark');
+                });
+
+                buildingMaterials.forEach(m => m.color.setHex(0x1e293b));
+            } else {
+                // 昼版（クリーン・スマートシティ風）
+                scene.fog.color.setHex(0xe2e8f0);
+                renderer.setClearColor(0xcbd5e1);
+                ambientLight.color.setHex(0xffffff);
+                ambientLight.intensity = 1.2;
+                dirLight.intensity = 1.8;
+
+                themeIcon.className = "fa-solid fa-sun text-amber-500";
+                document.querySelectorAll('.id-theme-card, .animated-gradient-border').forEach(el => {
+                    el.classList.remove('card-dark');
+                    el.classList.add('card-light');
+                });
+
+                buildingMaterials.forEach(m => m.color.setHex(0x94a3b8));
+            }
+        }
+
+        /**
+         * イベントリスナーの登録
+         */
+        function setupEvents() {
+            // テーマ切り替え
+            themeBtn.addEventListener('click', toggleDayNightTheme);
+
+            // 視点リセット
+            document.getElementById('reset-cam-btn').addEventListener('click', () => {
+                selectLocation('scene');
+            });
+
+            // モーダル閉じる
+            document.getElementById('modal-close').addEventListener('click', () => {
+                detailModal.classList.add('hidden');
+            });
+
+            // リサイズ
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        /**
+         * アニメーションメインループ
+         */
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // OrbitControls更新
+            controls.update();
+
+            // 虹色ルートのグラデーション時間更新
+            if (rainbowRouteMesh && rainbowRouteMesh.userData.uniforms) {
+                rainbowRouteMesh.userData.uniforms.uTime.value += 0.015;
+            }
+
+            // 救急車の走行アニメーション
+            if (ambulanceMesh && currentHospCurve) {
+                animProgress += 0.005;
+                if (animProgress > 1) animProgress = 0;
+
+                const pos = currentHospCurve.getPointAt(animProgress);
+                const tangent = currentHospCurve.getTangentAt(animProgress);
+
+                ambulanceMesh.position.copy(pos);
+                ambulanceMesh.position.y += 0.8;
+                ambulanceMesh.lookAt(pos.clone().add(tangent));
+            }
+
+            // 2Dオーバーレイピンの座標更新
+            updateHTMLMarkersPosition();
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
