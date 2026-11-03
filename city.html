@@ -92,11 +92,256 @@
             transform: translate(-50%, -100%);
             pointer-events: auto;
             cursor: pointer;
-            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+            transition: opacity 0.3s ease;
             z-index: 10;
         }
-        .map-pin:hover {
-            transform: translate(-50%, -112%) scale(1.1);
+
+        .pin-badge {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 5px;
+            border-radius: 8px;
+            font-size: 8px;
+            font-weight: 800;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+        }
+
+        .num-circle {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 900;
+            line-height: 1;
+            margin-right: 1px;
+        }
+    </style>
+</head>
+<body class="night-theme">
+
+    <!-- 3D WebGL Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay Layer -->
+    <div class="relative z-10 w-full h-full pointer-events-none flex flex-col justify-between p-3 sm:p-5">
+
+        <!-- Top Right Navigation Buttons Only -->
+        <div class="flex items-start justify-end w-full pointer-events-auto">
+            <div class="flex flex-col gap-2">
+                <button id="theme-btn" class="gradient-border-card card-dark rounded-full w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center shadow-2xl active:scale-95 transition-transform text-amber-400" title="昼夜切り替え">
+                    <i id="theme-icon" class="fa-solid fa-moon text-sm sm:text-lg"></i>
+                </button>
+                <button id="reset-cam-btn" class="gradient-border-card card-dark rounded-full w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center shadow-2xl active:scale-95 transition-transform text-cyan-400" title="全体広域表示">
+                    <i class="fa-solid fa-compress-arrows-alt text-xs sm:text-base"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 3D World Space Screen Markers -->
+        <div id="pins-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+
+    </div>
+
+    <!-- MAIN JAVASCRIPT -->
+    <script>
+        const LOCATIONS = {
+            station: {
+                num: '①',
+                id: 'station',
+                name: '① 中央消防署',
+                badgeBg: 'bg-red-600 text-white',
+                icon: 'fa-fire-extinguisher',
+                color: '#ef4444',
+                pos: new THREE.Vector3(-120, 0, 100),
+                pinHeight: 180, // ランダム風に異なる高さ設定
+                path: [
+                    new THREE.Vector3(-120, 0, 100),
+                    new THREE.Vector3(-80, 0, 100),
+                    new THREE.Vector3(-40, 0, 45),
+                    new THREE.Vector3(0, 0, 0)
+                ]
+            },
+            scene: {
+                num: '②',
+                id: 'scene',
+                name: '② 救急要請現場',
+                badgeBg: 'bg-amber-500 text-slate-950',
+                icon: 'fa-location-dot',
+                color: '#f59e0b',
+                pos: new THREE.Vector3(0, 0, 0),
+                pinHeight: 240
+            },
+            hospA: {
+                num: '③',
+                id: 'hospA',
+                name: '③ A市立総合医療センター',
+                badgeBg: 'bg-rose-600 text-white',
+                icon: 'fa-hospital-user',
+                color: '#f43f5e',
+                pos: new THREE.Vector3(540, 0, 380),
+                pinHeight: 310,
+                path: [
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(160, 0, 110),
+                    new THREE.Vector3(330, 0, 230),
+                    new THREE.Vector3(540, 0, 380)
+                ]
+            },
+            hospB: {
+                num: '④',
+                id: 'hospB',
+                name: '④ A市脳神経外科病院',
+                badgeBg: 'bg-cyan-500 text-white',
+                icon: 'fa-brain',
+                color: '#06b6d4',
+                pos: new THREE.Vector3(-210, 0, -145),
+                pinHeight: 160,
+                path: [
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(-65, 0, -45),
+                    new THREE.Vector3(-140, 0, -85),
+                    new THREE.Vector3(-210, 0, -145)
+                ]
+            },
+            hospC: {
+                num: '⑤',
+                id: 'hospC',
+                name: '⑤ 南A病院',
+                badgeBg: 'bg-blue-600 text-white',
+                icon: 'fa-hospital',
+                color: '#3b82f6',
+                pos: new THREE.Vector3(230, 0, 210),
+                pinHeight: 220,
+                path: [
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(85, 0, 65),
+                    new THREE.Vector3(160, 0, 135),
+                    new THREE.Vector3(230, 0, 210)
+                ]
+            },
+            hospD: {
+                num: '⑥',
+                id: 'hospD',
+                name: '⑥ A市中央病院',
+                badgeBg: 'bg-purple-600 text-white',
+                icon: 'fa-heart-pulse',
+                color: '#a855f7',
+                pos: new THREE.Vector3(320, 0, -230),
+                pinHeight: 280,
+                path: [
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(105, 0, -75),
+                    new THREE.Vector3(220, 0, -150),
+                    new THREE.Vector3(320, 0, -230)
+                ]
+            },
+            hospE: {
+                num: '⑦',
+                id: 'hospE',
+                name: '⑦ 西Z病院',
+                badgeBg: 'bg-emerald-600 text-white',
+                icon: 'fa-bone',
+                color: '#10b981',
+                pos: new THREE.Vector3(-440, 0, 190),
+                pinHeight: 195,
+                path: [
+                    new THREE.Vector3(0, 0, 0),
+                    new THREE.Vector3(-120, 0, 100),
+                    new THREE.Vector3(-260, 0, 150),
+                    new THREE.Vector3(-440, 0, 190)
+                ]
+            }
+        };
+
+        // 超広域カメラ設定
+        const DEFAULT_CAM_POS = new THREE.Vector3(60, 1850, 1950);
+        const DEFAULT_CAM_TARGET = new THREE.Vector3(50, 0, 60);
+
+        let scene, camera, renderer, controls;
+        let isNight = true;
+        let selectedLocId = null;
+        const pinElements = {};
+        const leadLinesGroup = new THREE.Group();
+
+        let cityObjectsGroup = null;
+        let rainbowTubeMesh = null;
+        let activeHospTubeMesh = null;
+        let ambulanceMesh = null;
+        let driveProgress = 0;
+        let currentHospCurve = null;
+
+        let ambLight, dirLight, hemiLight;
+        let windowTex = null;
+        const buildingMats = [];
+
+        const container = document.getElementById('canvas-container');
+        const pinsContainer = document.getElementById('pins-container');
+        const themeBtn = document.getElementById('theme-btn');
+        const themeIcon = document.getElementById('theme-icon');
+
+        window.addEventListener('load', () => {
+            initThree();
+            generateWindowTexture();
+            buildComplexCityEnvironment();
+            buildRainbowRoute();
+            create3DPinsHTML();
+            createLeadLines();
+            bindEvents();
+            animateLoop();
+
+            resetToGlobalView();
+        });
+
+        function initThree() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x050811, 0.0004);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 4500);
+            camera.position.copy(DEFAULT_CAM_POS);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2.15;
+            controls.minDistance = 35;
+            controls.maxDistance = 2800;
+            controls.target.copy(DEFAULT_CAM_TARGET);
+
+            ambLight = new THREE.AmbientLight(0x1e293b, 0.8);
+            scene.add(ambLight);
+
+            hemiLight = new THREE.HemisphereLight(0x38bdf8, 0x0f172a, 0.5);
+            hemiLight.position.set(0, 500, 0);
+            scene.add(hemiLight);
+
+            dirLight = new THREE.DirectionalLight(0x38bdf8, 1.3);
+            dirLight.position.set(400, 700, 400);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 10;
+            dirLight.shadow.camera.far = 2500;
+            const d = 1100;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            scene.add(dirLight);
+
+            scene.add(leadLinesGroup);
         }
 
         .pin-badge {
@@ -513,358 +758,31 @@
         }
 
         /**
-         * 複雑・超高密度都市構造の生成
+         * 各ポインターから地上建物へ接続するリード線（ガイドライン）の作成
          */
-        function buildComplexCityEnvironment() {
-            cityObjectsGroup = new THREE.Group();
-
-            const gGeo = new THREE.PlaneGeometry(3200, 3200);
-            const gMat = new THREE.MeshStandardMaterial({ color: 0x070c18, roughness: 0.95 });
-            const ground = new THREE.Mesh(gGeo, gMat);
-            ground.rotation.x = -Math.PI / 2;
-            ground.receiveShadow = true;
-            cityObjectsGroup.add(ground);
-
-            const roadW = 16;
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x1d283a, roughness: 0.5 });
-            const lineMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-
-            // 多彩な道路網（格子＋斜め＋環状線）
-            const roadSegments = [
-                // 消防署 -> 現場
-                { s: new THREE.Vector3(-120, 0, 100), e: new THREE.Vector3(-80, 0, 100) },
-                { s: new THREE.Vector3(-80, 0, 100), e: new THREE.Vector3(-40, 0, 45) },
-                { s: new THREE.Vector3(-40, 0, 45), e: new THREE.Vector3(0, 0, 0) },
-
-                // 病院B
-                { s: new THREE.Vector3(0, 0, 0), e: new THREE.Vector3(-65, 0, -45) },
-                { s: new THREE.Vector3(-65, 0, -45), e: new THREE.Vector3(-140, 0, -85) },
-                { s: new THREE.Vector3(-140, 0, -85), e: new THREE.Vector3(-210, 0, -145) },
-
-                // 病院C
-                { s: new THREE.Vector3(0, 0, 0), e: new THREE.Vector3(85, 0, 65) },
-                { s: new THREE.Vector3(85, 0, 65), e: new THREE.Vector3(160, 0, 135) },
-                { s: new THREE.Vector3(160, 0, 135), e: new THREE.Vector3(230, 0, 210) },
-
-                // 病院D
-                { s: new THREE.Vector3(0, 0, 0), e: new THREE.Vector3(105, 0, -75) },
-                { s: new THREE.Vector3(105, 0, -75), e: new THREE.Vector3(220, 0, -150) },
-                { s: new THREE.Vector3(220, 0, -150), e: new THREE.Vector3(320, 0, -230) },
-
-                // 病院E
-                { s: new THREE.Vector3(-120, 0, 100), e: new THREE.Vector3(-260, 0, 150) },
-                { s: new THREE.Vector3(-260, 0, 150), e: new THREE.Vector3(-440, 0, 190) },
-
-                // 病院A
-                { s: new THREE.Vector3(160, 0, 135), e: new THREE.Vector3(330, 0, 230) },
-                { s: new THREE.Vector3(330, 0, 230), e: new THREE.Vector3(540, 0, 380) },
-
-                // 追加の斜め・クロス都市幹線網
-                { s: new THREE.Vector3(-1000, 0, 0), e: new THREE.Vector3(1000, 0, 0) },
-                { s: new THREE.Vector3(0, 0, -1000), e: new THREE.Vector3(0, 0, 1000) },
-                { s: new THREE.Vector3(-900, 0, -700), e: new THREE.Vector3(900, 0, 700) },
-                { s: new THREE.Vector3(-900, 0, 700), e: new THREE.Vector3(900, 0, -700) },
-                { s: new THREE.Vector3(-500, 0, -800), e: new THREE.Vector3(800, 0, -400) },
-                { s: new THREE.Vector3(-800, 0, 400), e: new THREE.Vector3(500, 0, 800) }
-            ];
-
-            const intersections = [];
-
-            roadSegments.forEach(seg => {
-                const dir = new THREE.Vector3().subVectors(seg.e, seg.s);
-                const len = dir.length();
-                if (len < 1) return;
-
-                const center = new THREE.Vector3().addVectors(seg.s, seg.e).multiplyScalar(0.5);
-                const angle = Math.atan2(dir.x, dir.z);
-
-                const rGeo = new THREE.PlaneGeometry(roadW, len);
-                const rMesh = new THREE.Mesh(rGeo, roadMat);
-                rMesh.rotation.x = -Math.PI / 2;
-                rMesh.rotation.z = -angle;
-                rMesh.position.set(center.x, 0.15, center.z);
-                rMesh.receiveShadow = true;
-                cityObjectsGroup.add(rMesh);
-
-                const lGeo = new THREE.PlaneGeometry(0.8, len);
-                const lMesh = new THREE.Mesh(lGeo, lineMat);
-                lMesh.rotation.x = -Math.PI / 2;
-                lMesh.rotation.z = -angle;
-                lMesh.position.set(center.x, 0.2, center.z);
-                cityObjectsGroup.add(lMesh);
-
-                intersections.push(seg.s, seg.e);
-            });
-
-            createTrafficLights(cityObjectsGroup, intersections);
-
+        function createLeadLines() {
+            leadLinesGroup.clear();
             Object.values(LOCATIONS).forEach(loc => {
-                createFacilityBuilding(cityObjectsGroup, loc);
-            });
-
-            // 350棟の超高密度ビル群散布
-            createDenseSkyscrapers(cityObjectsGroup);
-
-            // デフォルトで非表示に設定
-            cityObjectsGroup.visible = false;
-            scene.add(cityObjectsGroup);
-        }
-
-        function createTrafficLights(parent, points) {
-            const lightGroup = new THREE.Group();
-            const uniquePts = [];
-            points.forEach(p => {
-                if (!uniquePts.some(u => u.distanceTo(p) < 25)) {
-                    uniquePts.push(p);
-                }
-            });
-
-            uniquePts.forEach(pt => {
-                const signal = new THREE.Group();
-                signal.position.copy(pt);
-
-                const poleGeo = new THREE.CylinderGeometry(0.3, 0.3, 11, 8);
-                const poleMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8 });
-                const pole = new THREE.Mesh(poleGeo, poleMat);
-                pole.position.y = 5.5;
-                signal.add(pole);
-
-                const boxGeo = new THREE.BoxGeometry(3.6, 1.2, 0.8);
-                const boxMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
-                const box = new THREE.Mesh(boxGeo, boxMat);
-                box.position.set(1.2, 10.5, 0);
-                signal.add(box);
-
-                const colors = [0x22c55e, 0xeab308, 0xef4444];
-                colors.forEach((col, idx) => {
-                    const lGeo = new THREE.CircleGeometry(0.4, 12);
-                    const lMat = new THREE.MeshBasicMaterial({ color: col });
-                    const lMesh = new THREE.Mesh(lGeo, lMat);
-                    lMesh.position.set(0.3 + idx * 0.9, 10.5, 0.41);
-                    signal.add(lMesh);
+                const points = [
+                    new THREE.Vector3(loc.pos.x, 0, loc.pos.z),
+                    new THREE.Vector3(loc.pos.x, loc.pinHeight, loc.pos.z)
+                ];
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                const material = new THREE.LineDashedMaterial({
+                    color: loc.color,
+                    dashSize: 6,
+                    gapSize: 4,
+                    linewidth: 2,
+                    transparent: true,
+                    opacity: 0.85
                 });
-
-                lightGroup.add(signal);
+                const line = new THREE.Line(geometry, material);
+                line.computeLineDistances();
+                leadLinesGroup.add(line);
             });
-
-            parent.add(lightGroup);
         }
 
-        function createFacilityBuilding(parent, loc) {
-            const group = new THREE.Group();
-            group.position.copy(loc.pos);
-
-            const lotGeo = new THREE.PlaneGeometry(55, 55);
-            const lotMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5 });
-            const lot = new THREE.Mesh(lotGeo, lotMat);
-            lot.rotation.x = -Math.PI / 2;
-            lot.position.y = 0.18;
-            group.add(lot);
-
-            // 該当テーマカラーによるネオン発光マテリアル
-            const neonMat = new THREE.MeshStandardMaterial({ 
-                color: loc.color, 
-                emissive: loc.color, 
-                emissiveIntensity: 1.2, 
-                roughness: 0.1 
-            });
-
-            if (loc.id === 'station') {
-                const bGeo = new THREE.BoxGeometry(34, 22, 30);
-                const bMesh = new THREE.Mesh(bGeo, neonMat);
-                bMesh.position.y = 11;
-                bMesh.castShadow = true;
-                group.add(bMesh);
-
-                const doorGeo = new THREE.BoxGeometry(26, 10, 0.8);
-                const doorMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                const door = new THREE.Mesh(doorGeo, doorMat);
-                door.position.set(0, 5, 15.1);
-                group.add(door);
-
-            } else if (loc.id === 'scene') {
-                const coneGeo = new THREE.ConeGeometry(8, 18, 4);
-                const coneMesh = new THREE.Mesh(coneGeo, neonMat);
-                coneMesh.position.y = 9;
-                group.add(coneMesh);
-
-            } else {
-                const isTertiary = loc.id === 'hospA';
-                const hHeight = isTertiary ? 48 : 34;
-                const hGeo = new THREE.BoxGeometry(36, hHeight, 34);
-                const hospital = new THREE.Mesh(hGeo, neonMat);
-                hospital.position.y = hHeight / 2;
-                hospital.castShadow = true;
-                group.add(hospital);
-
-                const heliGeo = new THREE.CylinderGeometry(11, 11, 0.8, 24);
-                const heliMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
-                const heli = new THREE.Mesh(heliGeo, heliMat);
-                heli.position.y = hHeight + 0.4;
-                group.add(heli);
-
-                const cGeo1 = new THREE.BoxGeometry(9, 0.3, 2.8);
-                const cGeo2 = new THREE.BoxGeometry(2.8, 0.3, 9);
-                const cMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                const c1 = new THREE.Mesh(cGeo1, cMat);
-                const c2 = new THREE.Mesh(cGeo2, cMat);
-                c1.position.y = hHeight + 0.8;
-                c2.position.y = hHeight + 0.8;
-                group.add(c1);
-                group.add(c2);
-            }
-
-            // 標識ポール & ネオンクリスタル
-            const pGeo = new THREE.CylinderGeometry(0.9, 0.9, 50, 12);
-            const pole = new THREE.Mesh(pGeo, neonMat);
-            pole.position.y = 25;
-            group.add(pole);
-
-            const crystalGeo = new THREE.OctahedronGeometry(5);
-            const crystal = new THREE.Mesh(crystalGeo, neonMat);
-            crystal.position.y = 52;
-            group.add(crystal);
-
-            // ポイントライトで周囲の街をテーマカラーで照らす
-            const pLight = new THREE.PointLight(loc.color, 2.5, 180);
-            pLight.position.y = 30;
-            group.add(pLight);
-
-            parent.add(group);
-        }
-
-        function createDenseSkyscrapers(parent) {
-            const bMat = new THREE.MeshStandardMaterial({
-                color: 0x1d283a,
-                roughness: 0.4,
-                metalness: 0.6,
-                map: windowTex
-            });
-            buildingMats.push(bMat);
-
-            const facPositions = Object.values(LOCATIONS).map(l => l.pos);
-
-            for (let i = 0; i < 350; i++) {
-                const rx = (Math.random() - 0.5) * 1800;
-                const rz = (Math.random() - 0.5) * 1800;
-                const pt = new THREE.Vector3(rx, 0, rz);
-
-                const isTooClose = facPositions.some(fp => fp.distanceTo(pt) < 60);
-                if (isTooClose) continue;
-
-                const bw = Math.random() * 26 + 14;
-                const bd = Math.random() * 26 + 14;
-                const bh = Math.random() * 85 + 20;
-
-                const geo = new THREE.BoxGeometry(bw, bh, bd);
-                const building = new THREE.Mesh(geo, bMat);
-                building.position.set(rx, bh / 2, rz);
-                building.castShadow = true;
-                building.receiveShadow = true;
-                parent.add(building);
-            }
-        }
-
-        function buildRainbowRoute() {
-            const waypoints = LOCATIONS.station.path;
-            const curve = new THREE.CatmullRomCurve3(waypoints, false, 'catmullrom', 0.1);
-            const tubeGeo = new THREE.TubeGeometry(curve, 100, 1.5, 8, false);
-
-            const rainbowUniforms = { uTime: { value: 0.0 } };
-
-            const rainbowMat = new THREE.ShaderMaterial({
-                uniforms: rainbowUniforms,
-                vertexShader: `
-                    varying vec2 vUv;
-                    void main() {
-                        vUv = uv;
-                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                    }
-                `,
-                fragmentShader: `
-                    uniform float uTime;
-                    varying vec2 vUv;
-
-                    vec3 rainbow(float t) {
-                        vec3 a = vec3(0.5, 0.5, 0.5);
-                        vec3 b = vec3(0.5, 0.5, 0.5);
-                        vec3 c = vec3(1.0, 1.0, 1.0);
-                        vec3 d = vec3(0.0, 0.33, 0.67);
-                        return a + b * cos(6.28318 * (c * t + d));
-                    }
-
-                    void main() {
-                        float shift = vUv.x * 3.0 - uTime * 1.0;
-                        vec3 col = rainbow(shift);
-                        gl_FragColor = vec4(col, 0.95);
-                    }
-                `,
-                transparent: true
-            });
-
-            rainbowTubeMesh = new THREE.Mesh(tubeGeo, rainbowMat);
-            rainbowTubeMesh.position.y = 1.0;
-            rainbowTubeMesh.userData = { uniforms: rainbowUniforms };
-            rainbowTubeMesh.visible = false; // デフォルトで非表示
-            scene.add(rainbowTubeMesh);
-        }
-
-        function drawHospitalRoute(targetHosp) {
-            if (activeHospTubeMesh) scene.remove(activeHospTubeMesh);
-            if (ambulanceMesh) scene.remove(ambulanceMesh);
-
-            const waypoints = targetHosp.path;
-            currentHospCurve = new THREE.CatmullRomCurve3(waypoints, false, 'catmullrom', 0.1);
-
-            const tubeGeo = new THREE.TubeGeometry(currentHospCurve, 120, 1.2, 8, false);
-            const routeMat = new THREE.MeshStandardMaterial({
-                color: 0x38bdf8,
-                emissive: 0x0284c7,
-                emissiveIntensity: 0.9,
-                roughness: 0.2
-            });
-
-            activeHospTubeMesh = new THREE.Mesh(tubeGeo, routeMat);
-            activeHospTubeMesh.position.y = 1.0;
-            scene.add(activeHospTubeMesh);
-
-            const ambGroup = new THREE.Group();
-            
-            const bodyGeo = new THREE.BoxGeometry(3.2, 2.0, 5.6);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.position.y = 1.2;
-            ambGroup.add(body);
-
-            const stripeGeo = new THREE.BoxGeometry(3.25, 0.45, 5.65);
-            const stripeMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-            const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-            stripe.position.y = 1.1;
-            ambGroup.add(stripe);
-
-            const lightGeo = new THREE.BoxGeometry(1.4, 0.4, 1.2);
-            const lightMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-            const light = new THREE.Mesh(lightGeo, lightMat);
-            light.position.set(0, 2.4, 0);
-            ambGroup.add(light);
-
-            ambulanceMesh = ambGroup;
-            scene.add(ambulanceMesh);
-            driveProgress = 0;
-        }
-
-        function clearHospitalRoute() {
-            if (activeHospTubeMesh) {
-                scene.remove(activeHospTubeMesh);
-                activeHospTubeMesh = null;
-            }
-            if (ambulanceMesh) {
-                scene.remove(ambulanceMesh);
-                ambulanceMesh = null;
-            }
-            currentHospCurve = null;
-        }
-
+        function update3DPinsPosition() {
         function create3DPinsHTML() {
             Object.values(LOCATIONS).forEach(loc => {
                 const el = document.createElement('div');
@@ -891,8 +809,9 @@
                 const el = pinElements[loc.id];
                 if (!el) return;
 
+                // 各ポインター固有のランダムな高さを設定
                 tempV.copy(loc.pos);
-                tempV.y += (cityObjectsGroup && cityObjectsGroup.visible) ? 58 : 30;
+                tempV.y += loc.pinHeight;
                 tempV.project(camera);
 
                 const x = (tempV.x *  .5 + .5) * window.innerWidth;
@@ -905,6 +824,63 @@
                     el.style.left = `${x}px`;
                     el.style.top = `${y}px`;
                 }
+            });
+        }
+
+        function selectLocation(locId) {
+            const loc = LOCATIONS[locId];
+            if (!loc) return;
+
+            selectedLocId = locId;
+
+            if (cityObjectsGroup) cityObjectsGroup.visible = true;
+            if (rainbowTubeMesh) rainbowTubeMesh.visible = true;
+
+            const targetCamPos = new THREE.Vector3().copy(loc.pos).add(new THREE.Vector3(0, loc.pinHeight + 100, 200));
+            gsap.to(camera.position, {
+                x: targetCamPos.x,
+                y: targetCamPos.y,
+                z: targetCamPos.z,
+                duration: 1.4,
+                ease: 'power2.inOut'
+            });
+
+            gsap.to(controls.target, {
+                x: loc.pos.x,
+                y: loc.pos.y,
+                z: loc.pos.z,
+                duration: 1.4,
+                ease: 'power2.inOut'
+            });
+
+            if (locId.startsWith('hosp')) {
+                drawHospitalRoute(loc);
+            } else {
+                clearHospitalRoute();
+            }
+        }
+
+        function resetToGlobalView() {
+            selectedLocId = null;
+
+            if (cityObjectsGroup) cityObjectsGroup.visible = false;
+            if (rainbowTubeMesh) rainbowTubeMesh.visible = false;
+            clearHospitalRoute();
+
+            gsap.to(camera.position, {
+                x: DEFAULT_CAM_POS.x,
+                y: DEFAULT_CAM_POS.y,
+                z: DEFAULT_CAM_POS.z,
+                duration: 1.5,
+                ease: 'power2.inOut'
+            });
+
+            gsap.to(controls.target, {
+                x: DEFAULT_CAM_TARGET.x,
+                y: DEFAULT_CAM_TARGET.y,
+                z: DEFAULT_CAM_TARGET.z,
+                duration: 1.5,
+                ease: 'power2.inOut'
             });
         }
 
@@ -1050,10 +1026,7 @@
 
         function bindEvents() {
             themeBtn.addEventListener('click', toggleDayNight);
-
             document.getElementById('reset-cam-btn').addEventListener('click', resetToGlobalView);
-
-            document.getElementById('modal-close-btn').addEventListener('click', closeModal);
 
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
