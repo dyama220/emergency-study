@@ -1,0 +1,1388 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>熱傷についての復習</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root {
+  --bg-dark: #070a14;
+  --card-bg: rgba(22, 14, 42, 0.94);
+  --text-main: #f0f4f8;
+  --text-muted: #a0aec0;
+  --accent-cyan: #00f0ff;
+  --accent-purple: #e024ff;
+  --accent-gold: #ffd700;
+  --accent-red: #ff3b30;
+  --accent-green: #34c759;
+  box-sizing: border-box;
+}
+
+
+* { box-sizing: border-box; }
+
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: "游ゴシック体", "Yu Gothic", YuGothic, "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  user-select: none;
+}
+
+
+/* Background Ember Canvas */
+#emberCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+}
+
+
+/* Top Progress Bar */
+#bar {
+  position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  height: 5px;
+  width: 0%;
+  background: linear-gradient(90deg, #00f0ff, #ff00ff, #ff5500);
+  background-size: 200% 100%;
+  animation: flowBar 3s linear infinite;
+  z-index: 10;
+  transition: width 0.4s ease-out;
+}
+
+
+@keyframes flowBar {
+  0% { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+
+
+/* Animated Highlight Text */
+.hl {
+  background: linear-gradient(90deg, #ff8800, #ff007f, #ffea00, #ff8800);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: flowText 4s linear infinite;
+  font-weight: bold;
+}
+
+
+@keyframes flowText {
+  0% { background-position: 0% 0; }
+  100% { background-position: 300% 0; }
+}
+
+
+/* App Container */
+#app {
+  position: relative;
+  z-index: 5;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 10px 10px;
+}
+
+
+/* Outer Gradient Border Wrap - Responsive Auto Height */
+.card-border-wrap {
+  position: relative;
+  width: min(95vw, 1100px);
+  max-height: calc(100vh - 90px);
+  border-radius: 24px;
+  padding: 3px;
+  background: linear-gradient(115deg, #8a2be2, #ff0055, #ffea00, #00f0ff, #8a2be2);
+  background-size: 300% 300%;
+  animation: borderGlow 6s ease infinite;
+  box-shadow: 0 0 25px rgba(138, 43, 226, 0.4), 0 0 50px rgba(255, 0, 85, 0.2);
+  margin-top: 36px;
+  display: flex;
+  flex-direction: column;
+}
+
+
+@keyframes borderGlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+/* Inner Glass Card - Fully Scrollable */
+.card {
+  display: none;
+  width: 100%;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  padding: clamp(20px, 3.8vw, 36px);
+  border-radius: 21px;
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+
+.card.on {
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* Sequential Fade-in Animations for Card Elements */
+.card.on .title-card > * {
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+
+.card.on .card-header {
+  animation: fadeInUp 0.35s ease 0.05s forwards;
+  opacity: 0;
+}
+
+
+.card.on .key-msg {
+  animation: fadeInUp 0.35s ease 0.12s forwards;
+  opacity: 0;
+}
+
+
+.card.on .card-content {
+  animation: fadeInUp 0.35s ease 0.18s forwards;
+  opacity: 0;
+}
+
+
+.card.on .tool-box {
+  animation: fadeInUp 0.35s ease 0.24s forwards;
+  opacity: 0;
+}
+
+
+.card.on .note-box {
+  animation: fadeInUp 0.35s ease 0.3s forwards;
+  opacity: 0;
+}
+
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 12px;
+  flex-shrink: 0;
+}
+
+
+.card-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+
+.card-icon svg {
+  width: 32px;
+  height: 32px;
+  stroke: var(--accent-cyan);
+}
+
+
+.card-title-group h2 {
+  margin: 0;
+  font-size: clamp(22px, 4.5vw, 32px);
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+}
+
+
+.card-title-group .chapter-badge {
+  font-size: 13px;
+  color: var(--accent-gold);
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+
+.card-content {
+  font-size: clamp(17px, 3.8vw, 22px);
+  line-height: 1.75;
+  flex-grow: 1;
+}
+
+
+.card-content ul {
+  margin: 10px 0;
+  padding-left: 1.2em;
+}
+
+
+.card-content li {
+  margin: 8px 0;
+}
+
+
+.key-msg {
+  background: rgba(0, 240, 255, 0.1);
+  border-left: 5px solid var(--accent-cyan);
+  padding: 12px 18px;
+  border-radius: 0 12px 12px 0;
+  margin: 10px 0 16px;
+  font-weight: bold;
+  font-size: clamp(18px, 4vw, 24px);
+  line-height: 1.5;
+}
+
+
+.diagram-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 14px 0;
+}
+
+
+.depth-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+
+.depth-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 12px;
+  border-top: 4px solid var(--accent-cyan);
+}
+
+
+.depth-card.d1 { border-color: #ff9500; }
+.depth-card.d2s { border-color: #ff2d55; }
+.depth-card.d2d { border-color: #af52de; }
+.depth-card.d3 { border-color: #007aff; }
+
+
+.depth-card h4 { margin: 0 0 6px; font-size: 17px; }
+.depth-card p { margin: 0; font-size: 13.5px; color: var(--text-muted); }
+
+
+/* Navigation Bar */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 10;
+  padding-bottom: 4px;
+  flex-shrink: 0;
+}
+
+
+.nb {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 30px;
+  font-size: 17px;
+  font-weight: bold;
+  color: #fff;
+  background: linear-gradient(90deg, #00f0ff, #ff00cc, #00f0ff);
+  background-size: 200% 100%;
+  animation: nbFlow 3s linear infinite;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.4);
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+
+@keyframes nbFlow {
+  0% { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+
+
+.nb:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 0 22px rgba(255, 0, 204, 0.6);
+}
+
+
+.nb:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+
+#cnt {
+  color: var(--text-muted);
+  font-size: 17px;
+  font-weight: bold;
+  min-width: 80px;
+  text-align: center;
+}
+
+
+/* Header Action Buttons */
+#tocBtn, #fsBtn {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 10px);
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--card-bg);
+  color: var(--text-main);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  backdrop-filter: blur(8px);
+}
+
+
+#tocBtn { left: 14px; }
+#fsBtn { right: 14px; }
+#tocBtn svg, #fsBtn svg { width: 22px; height: 22px; stroke: var(--text-main); }
+
+
+/* Table of Contents Modal */
+#tocModal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(7, 10, 20, 0.96);
+  backdrop-filter: blur(20px);
+  display: none;
+  flex-direction: column;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+
+
+#tocModal.show { display: flex; }
+
+
+.toc-header { display: flex; justify-content: space-between; align-items: center; max-width: 900px; width: 100%; margin: 0 auto 24px; }
+.toc-header h2 { margin: 0; font-size: 28px; color: var(--accent-cyan); }
+.close-btn { background: none; border: none; color: var(--text-main); cursor: pointer; padding: 8px; }
+.close-btn svg { width: 32px; height: 32px; stroke: #fff; }
+
+
+.toc-list { display: flex; flex-direction: column; gap: 12px; max-width: 900px; width: 100%; margin: 0 auto; }
+.toc-item { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer; transition: all 0.25s; }
+#tocModal.show { animation: tocFade 0.3s ease-out; }
+#tocModal.show .toc-item { animation: tocDrop 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards; animation-delay: calc(var(--i, 0) * 70ms + 80ms); }
+@keyframes tocFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tocDrop { from { opacity: 0; transform: translateY(-70px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.toc-item:hover { background: rgba(0, 240, 255, 0.15); border-color: var(--accent-cyan); transform: translateX(6px); }
+.toc-num { font-size: 18px; font-weight: 900; min-width: 100px; background: linear-gradient(90deg, #ff4de0, #a855f7, #ff4de0); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; animation: tocNumFlow 3s linear infinite; }
+@keyframes tocNumFlow { 0% { background-position: 0% 0; } 100% { background-position: 200% 0; } }
+.toc-title { font-size: 18px; font-weight: 700; }
+
+
+/* Quiz Buttons */
+.opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: clamp(17px, 4vw, 22px);
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(0, 240, 255, 0.35);
+  border-radius: 14px;
+  padding: 15px 20px;
+  margin: 10px 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+
+.opt:hover {
+  background: rgba(0, 240, 255, 0.18);
+  border-color: var(--accent-cyan);
+}
+
+
+/* Cut-in Quiz Result Overlay */
+#ov {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  text-align: center;
+}
+
+
+#ov.show { display: flex; }
+#ov.in { opacity: 1; }
+#ov.ok { background: rgba(2, 6, 20, 0.95); }
+#ov.ng { background: rgba(22, 2, 16, 0.95); }
+
+
+#ovBox { max-width: 700px; width: 100%; }
+#ovTitle { font-size: clamp(50px, 14vw, 110px); font-weight: 900; margin: 0 0 14px; animation: popCut 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.ok #ovTitle { color: var(--accent-cyan); text-shadow: 0 0 20px #00f0ff, 0 0 40px #00a2ff, 0 0 80px #0055ff; }
+.ng #ovTitle { color: var(--accent-purple); text-shadow: 0 0 20px #e024ff, 0 0 40px #9000ff, 0 0 80px #ff0055; }
+
+
+@keyframes popCut { 0% { transform: scale(0.2); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+
+#ovDesc { font-size: clamp(18px, 4vw, 24px); line-height: 1.7; color: #f0f4f8; margin: 0 0 22px; white-space: pre-line; }
+#ovBtn { border: 0; border-radius: 999px; padding: 14px 42px; font-size: 18px; font-weight: bold; color: #070a14; background: linear-gradient(90deg, #00f0ff, #ff00cc); cursor: pointer; box-shadow: 0 0 20px rgba(0, 240, 255, 0.5); }
+
+
+#chIntro {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.97);
+  overflow: hidden;
+}
+#chIntro.show { display: flex; animation: chIntroAnim 1.5s ease forwards; }
+@keyframes chIntroAnim { 0% { opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { opacity: 0; } }
+#chNum, #chTitle {
+  margin: 0;
+  font-weight: 900;
+  color: #ff4de0;
+  text-shadow: 0 0 20px #ff00cc, 0 0 40px #ff00aa, 0 0 80px #ff0080;
+}
+#chNum { font-size: clamp(54px, 15vw, 130px); animation: popCut 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+#chTitle { font-size: clamp(24px, 6vw, 48px); margin-top: 14px; line-height: 1.4; }
+.laser { position: absolute; left: 0; width: 100%; height: 4px; overflow: hidden; background: rgba(255, 0, 48, 0.25); }
+.laser.top { top: 0; }
+.laser.bottom { bottom: 0; }
+.laser::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 35%;
+  background: linear-gradient(90deg, rgba(255, 0, 48, 0), #ff1030 40%, #ffffff 50%, #ff1030 60%, rgba(255, 0, 48, 0));
+  box-shadow: 0 0 14px 4px #ff0030, 0 0 30px 8px rgba(255, 0, 48, 0.6);
+}
+.laser.top::before { animation: laserRight 0.7s linear infinite; }
+.laser.bottom::before { animation: laserLeft 0.7s linear infinite; }
+@keyframes laserRight { from { left: -35%; } to { left: 100%; } }
+@keyframes laserLeft { from { left: 100%; } to { left: -35%; } }
+
+
+#jumpFlash {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at center, rgba(255, 106, 0, 0.3), rgba(255, 106, 0, 0) 70%);
+  box-shadow: inset 0 0 140px 50px #ff6a00, inset 0 0 50px 12px #ffa040;
+}
+#jumpFlash.go { animation: orangeFlash 0.9s ease-out; }
+@keyframes orangeFlash { 0% { opacity: 0; } 20% { opacity: 1; } 100% { opacity: 0; } }
+
+
+#starCanvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 101; pointer-events: none; }
+
+
+/* Interactive Tools & Gimmicks */
+.tool-box {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  padding: 18px;
+  margin-top: 12px;
+}
+
+
+.tool-res {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid var(--accent-cyan);
+  font-size: 19px;
+  font-weight: bold;
+  text-align: center;
+}
+
+
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 16px; margin-bottom: 6px; color: var(--accent-gold); }
+.form-control { width: 100%; padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.25); color: #fff; font-size: 16px; }
+.form-control:focus { outline: none; border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(0, 240, 255, 0.4); }
+
+
+/* Mannequin Interactive Gimmick 4 Styling */
+.mannequin-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0;
+}
+
+
+.mannequin-svg {
+  width: min(220px, 70vw);
+  height: auto;
+  background: rgba(0,0,0,0.5);
+  border-radius: 16px;
+  padding: 8px;
+  border: 1px solid rgba(0, 240, 255, 0.3);
+}
+
+
+.part-burn { transition: all 0.3s; cursor: pointer; }
+.part-burn.d0 { fill: #3a4a5e; stroke: #5a6a7e; }
+.part-burn.d1 { fill: #ff9500; stroke: #ffaa33; }
+.part-burn.d2 { fill: #ff2d55; stroke: #ff5577; }
+.part-burn.d3 { fill: #af52de; stroke: #cc66ff; }
+
+
+.mannequin-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(0,0,0,0.3);
+  padding: 14px;
+  border-radius: 12px;
+  min-width: 200px;
+}
+
+
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.legend-color { width: 18px; height: 18px; border-radius: 4px; }
+
+
+.tool-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+
+.tool-btn.active {
+  background: rgba(0, 240, 255, 0.25);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  font-weight: bold;
+}
+
+
+.checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+.checkbox-item { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 15px; }
+.checkbox-item input { width: 18px; height: 18px; accent-color: var(--accent-cyan); }
+
+
+/* Title Slide Layout */
+.title-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px 10px;
+}
+
+
+.title-card h1 { font-size: clamp(30px, 5.5vw, 48px); margin: 16px 0; line-height: 1.25; }
+.title-card p { font-size: clamp(17px, 3.5vw, 22px); color: var(--text-muted); max-width: 780px; margin-bottom: 28px; }
+.start-btn { background: linear-gradient(90deg, #00f0ff, #ff00cc); color: #070a14; font-weight: 900; font-size: clamp(19px, 4vw, 26px); padding: 16px 48px; border-radius: 999px; border: none; cursor: pointer; box-shadow: 0 0 28px rgba(0, 240, 255, 0.6); transition: transform 0.2s; }
+.start-btn:hover { transform: scale(1.05); }
+
+
+.copy-btn { background: linear-gradient(90deg, #ffd700, #ff8800); color: #000; font-weight: bold; border: none; padding: 14px 32px; border-radius: 999px; cursor: pointer; font-size: 18px; margin-top: 14px; box-shadow: 0 0 18px rgba(255, 215, 0, 0.5); }
+.copy-btn:hover { transform: scale(1.03); }
+
+
+.slide-img { display: block; max-width: 100%; max-height: 40vh; width: auto; height: auto; margin: 12px auto; border-radius: 14px; }
+
+
+.card-content ul.cause-list { list-style: none; padding-left: 0; margin: 10px 0; }
+.cause-item { display: flex; align-items: center; gap: 14px; margin: 14px 0; font-size: clamp(19px, 4.2vw, 26px); }
+.cause-icon { width: 46px; height: 46px; border-radius: 12px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); display: grid; place-items: center; flex-shrink: 0; }
+.cause-icon svg { width: 26px; height: 26px; stroke: var(--accent-cyan); }
+
+
+.note-box { font-size: 13.5px; color: var(--text-muted); margin-top: 16px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.15); }
+
+
+/* ===== 追加：スライド15 カットイン問題（自由記述） ===== */
+#qov {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.97);
+}
+#qov.show { display: flex; }
+#qov.in { opacity: 1; }
+#qBox { max-width: 720px; width: 100%; }
+#qTitle {
+  font-size: clamp(40px, 11vw, 84px);
+  font-weight: 900;
+  margin: 0 0 14px;
+  color: var(--accent-cyan);
+  text-shadow: 0 0 20px #00f0ff, 0 0 40px #00a2ff, 0 0 80px #0055ff;
+  animation: popCut 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+#qText { font-size: clamp(24px, 6vw, 40px); font-weight: 900; line-height: 1.5; margin: 0 0 24px; }
+.q-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 22px; }
+#qInput { max-width: 240px; font-size: clamp(26px, 6vw, 36px); font-weight: bold; text-align: center; }
+.q-unit { font-size: clamp(26px, 6vw, 36px); font-weight: 900; color: var(--accent-cyan); }
+#qBtn { border: 0; border-radius: 999px; padding: 14px 42px; font-size: 20px; font-weight: bold; color: #070a14; background: linear-gradient(90deg, #00f0ff, #ff00cc); cursor: pointer; box-shadow: 0 0 20px rgba(0, 240, 255, 0.5); }
+#qBack { display: block; margin: 18px auto 0; background: none; border: none; color: var(--text-muted); font-size: 15px; cursor: pointer; text-decoration: underline; }
+
+
+/* ===== 追加：スライド18 3Dマネキン ===== */
+.burn3d-wrap { position: relative; margin: 10px 0; }
+.burn3d-box {
+  width: 100%;
+  height: clamp(260px, 42vh, 420px);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y;
+}
+.burn3d-box:active { cursor: grabbing; }
+.burn3d-box canvas { display: block; width: 100%; height: 100%; }
+.burn3d-hint { position: absolute; top: 10px; right: 12px; font-size: 12px; color: var(--accent-cyan); pointer-events: none; }
+.legend-row { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 12px; }
+.mode-row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+
+<canvas id="emberCanvas"></canvas>
+<div id="bar"></div>
+
+
+<button id="tocBtn" title="目次 (Chapter一覧)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+<button id="fsBtn" title="全画面表示"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg></button>
+
+
+<div id="tocModal"><div class="toc-header"><h2>熱傷研修 - 章（Chapter）目次</h2><button class="close-btn" id="closeToc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="toc-list" id="tocList"></div></div>
+
+
+<div id="app">
+  <div class="card-border-wrap">
+    <main id="slideContainer"></main>
+  </div>
+  <nav>
+    <button class="nb" id="prevBtn">戻る</button>
+    <span id="cnt">1 / 53</span>
+    <button class="nb" id="nextBtn">次へ</button>
+  </nav>
+</div>
+
+
+<div id="qov"><div id="qBox"><p id="qTitle">QUESTION</p><p id="qText">右腕の腹側全体に水疱がある場合、Ⅱ度熱傷は何%？</p><div class="q-row"><input type="number" id="qInput" class="form-control" step="0.1" inputmode="decimal" placeholder="数値"><span class="q-unit">%</span></div><button id="qBtn">解答する</button><button id="qBack">スライドに戻る</button></div></div>
+
+
+<div id="chIntro"><div class="laser top"></div><div class="laser bottom"></div><p id="chNum"></p><p id="chTitle"></p></div>
+
+<div id="jumpFlash"></div>
+
+<div id="ov"><div id="ovBox"><p id="ovTitle"></p><p id="ovDesc"></p><button id="ovBtn"></button></div></div>
+<canvas id="starCanvas"></canvas>
+
+
+<script>
+const SVG_ICONS = {
+  play: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>`,
+  target: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+  activity: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
+  definition: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+  alert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  layers: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
+  sun: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+  droplet: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
+  skin: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>`,
+  burn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`,
+  shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  scissors: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>`,
+  calc: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><line x1="16" y1="10" x2="12" y2="10"/><line x1="12" y1="14" x2="8" y2="14"/></svg>`,
+  grid: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>`,
+  hand: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 0 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>`,
+  badge: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.78 4.78 4 4 0 0 1-6.74 0 4 4 0 0 1-4.78-4.78 4 4 0 0 1 0-6.74z"/><polyline points="9 11 12 14 22 4"/></svg>`,
+  cross: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>`,
+  face: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>`,
+  bone: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.5 2.5 0 0 0-2.5 2.5c0 .3.05.6.15.87L8.37 12.65A2.5 2.5 0 1 0 5 17a2.5 2.5 0 0 0 2.5-2.5c0-.3-.05-.6-.15-.87l6.28-6.28A2.5 2.5 0 1 0 17 3z"/></svg>`,
+  biohazard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M12 22a5 5 0 0 0 4.13-2.19l-2.48-4.3A2 2 0 0 1 12 16a2 2 0 0 1-1.65-.49l-2.48 4.3A5 5 0 0 0 12 22z"/><path d="M2.38 8a5 5 0 0 0 1.54 4.41l4.3-2.48A2 2 0 0 1 8 8a2 2 0 0 1 .49-1.65l-4.3-2.48A5 5 0 0 0 2.38 8z"/><path d="M21.62 8a5 5 0 0 0-3.65-4.13l-4.3 2.48A2 2 0 0 1 14 8a2 2 0 0 1 .49 1.65l4.3 2.48A5 5 0 0 0 21.62 8z"/></svg>`,
+  wind: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>`,
+  siren: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a6 6 0 0 0-6 6v7h12V8a6 6 0 0 0-6-6z"/><rect x="4" y="15" width="16" height="4" rx="1"/><line x1="12" y1="19" x2="12" y2="22"/></svg>`,
+  gas: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M8 12a4 4 0 0 1 8 0"/></svg>`,
+  skull: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><path d="M8 20v-2h8v2"/><path d="M12 2a7 7 0 0 0-7 7c0 3 2 5 3 7h8c1-2 3-4 3-7a7 7 0 0 0-7-7z"/></svg>`,
+  heart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+  iv: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6m0 0a3 3 0 0 0 3 3h1v8a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-8h1a3 3 0 0 0 3-3V2z"/></svg>`,
+  child: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>`,
+  thermometer: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>`,
+  water: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
+  clot: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`,
+  blanket: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h12M6 12h12M6 16h12"/></svg>`,
+  shirt: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>`,
+  cuff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>`,
+  stretcher: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="9" width="20" height="6" rx="1"/><line x1="2" y1="12" x2="2" y2="18"/><line x1="22" y1="12" x2="22" y2="18"/></svg>`,
+  checklist: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>`,
+  bolt: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  flask: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6"/><path d="M10 2v6L4 19a2 2 0 0 0 1.8 3h12.4A2 2 0 0 0 20 19l-6-11V2"/><line x1="7.5" y1="15" x2="16.5" y2="15"/></svg>`,
+  star: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`
+};
+
+
+const CHAPTERS = [
+  { num: 0, title: "タイトル画面", slides: [1] },
+  { num: 1, title: "本資料が目指すところ", slides: [2, 3] },
+  { num: 2, title: "熱傷の病態と定義", slides: [4, 5, 6, 7] },
+  { num: 3, title: "熱傷の深達度分類", slides: [8, 9, 10, 11, 12, 13, 14, 15] },
+  { num: 4, title: "熱傷面積（TBSA）評価", slides: [16, 17, 18, 19, 20] },
+  { num: 5, title: "重症度判定と危険部位", slides: [21, 22, 23, 24, 25, 26, 27, 28, 29, 30] },
+  { num: 6, title: "致命的な気道熱傷と特殊中毒", slides: [31, 32, 33, 34, 35] },
+  { num: 7, title: "ショックと早期輸液の根拠", slides: [36, 37, 38] },
+  { num: 8, title: "全身管理の死角「低体温とDIC」", slides: [39, 40, 41, 42, 43] },
+  { num: 9, title: "現場処置と搬送時の二次被害防止", slides: [44, 45, 46, 47] },
+  { num: 10, title: "火災総合エミュレーション＆活動黄金律", slides: [48, 49, 50, 51, 52, 53] }
+];
+
+
+const IMGS = {
+  i9471: "images/IMG_9471.jpeg",
+  i9472: "images/IMG_9472.jpeg",
+  i9473: "images/IMG_9473.jpeg",
+  i9474: "images/IMG_9474.jpeg",
+  i9475: "images/IMG_9475.jpeg",
+  i9476: "images/IMG_9476.jpeg"
+};
+
+
+const SLIDES = [
+  { isTitle: true, t: "熱傷に対応するために", sub: "熱傷を評価して、介入していく", btn: "START" },
+  { ch: 1, icon: "target", t: "目標", km: "熱傷の評価、介入ができる（「皮膚の傷」＋「全身の影響」を直感）", c: `<ul><li>熱傷は単なる"やけど"ではありません。部位や範囲によっては<span class="hl">気道閉塞</span>や<span class="hl">循環血液量減少ショック</span>、<span class="hl">DIC</span>を引き起こします。</li><li>病態の真意を把握し、的確な初期介入を行うことが本研修の目的です。</li></ul>` },
+  { ch: 1, icon: "activity", t: "活動", km: "救急搬送でやるべきこと：「熱傷の深達度・範囲・部位の評価」と「気道・輸液・保温介入」", c: `<ul><li>目の前の局所損傷を見る”だけ”ではなく、常に<span class="hl">ABCDEアプローチ</span>を念頭に置きます。</li><li>迅速な医療機関選定と、活動中の早期介入が患者の予後を左右します。</li><li>熱傷への介入目的の一つに、<span class="hl">感染防止</span>もあります。</li></ul>` },
+  { ch: 2, icon: "definition", t: "熱傷の定義", km: "熱傷とは熱刺激による組織壊死と、毛細血管の透過性亢進病態である", c: `<ul><li>熱傷は、熱・化学物質・電気・放射線などによる皮膚・深部組織の損傷である。</li><li>熱による熱傷では、蛋白変性と凝固壊死が生じる。</li><li>損傷周囲には炎症や浮腫が起こる。</li><li>広範囲・深達性熱傷では、血管透過性亢進により血漿成分が組織へ漏出する。</li><li>その結果、循環血液量減少や熱傷ショックを来しうる。</li></ul>` },
+  { ch: 2, icon: "burn", t: "熱傷が起きる一例", c: `<ul class="cause-list"><li class="cause-item"><span class="cause-icon">${SVG_ICONS.thermometer}</span><span class="hl">01 高温度物体との接触</span></li><li class="cause-item"><span class="cause-icon">${SVG_ICONS.burn}</span><span class="hl">02 火災現場・火炎</span></li><li class="cause-item"><span class="cause-icon">${SVG_ICONS.droplet}</span><span class="hl">03 高温液体</span></li><li class="cause-item"><span class="cause-icon">${SVG_ICONS.bolt}</span><span class="hl">04 電気損傷</span></li><li class="cause-item"><span class="cause-icon">${SVG_ICONS.flask}</span><span class="hl">05 化学熱傷</span></li></ul>` },
+  { img: "i9471", imgPos: "body", ch: 2, icon: "thermometer", t: "疫学と受傷機転", km: "皮膚は70℃以上で約1秒、60℃で約10秒で熱傷を生じる", c: `<ul><li>小児では<span class="hl">高温液体</span>による受傷が多い。</li><li>皮膚は、70℃以上の温度に暴露された場合に約1秒、60℃では約10秒で熱傷を生じる。</li><li>低温であっても長時間暴露されると熱傷を生じる可能性がある。</li><li>乳幼児や高齢者は皮膚が薄いため、熱傷を生じるまでの時間は短くなる。</li><li>熱傷が広範囲の場合、深度が深い場合、局所の炎症反応だけでなく<span class="hl">全身性炎症反応</span>が引き起こされ、ショック、DIC、MOFなどの全身症状を引き起こす。</li></ul>` },
+  { ch: 2, icon: "alert", t: "熱傷が引き起こす全身の危機", km: "「10%」がキーワード：局所冷却（10%未満）か 全身保温（10%以上）かの分岐点", c: `<ul><li>本地域プロトコル：<span class="hl">10%未満 → 局所冷却</span> / <span class="hl">10%以上 → 全身保温</span>。</li><li>一定以上の広さと深さを持つ熱傷は、数時間単位で全身循環不全をもたらします。</li></ul>` },
+  { img: "i9472", imgPos: "km", ch: 3, icon: "layers", t: "熱傷深達度の4段階分類", km: "損傷が届く深度によってⅠ度・Ⅱ度（浅達・深達）・Ⅲ度に分かれる", c: `<p>深達度の構造的図解表現：</p><div class="depth-grid"><div class="depth-card d1"><h4>Ⅰ度（表層）</h4><p>表皮のみ。発赤・ヒリヒリ感。水疱なし。治癒痕なし。<br><b>TBSA計算除外！</b></p></div><div class="depth-card d2s"><h4>Ⅱ度浅達（SDB）</h4><p>真皮浅層。鮮紅色水疱・激痛。1〜2週で治癒。<br><b>TBSA計算対象</b></p></div><div class="depth-card d2d"><h4>Ⅱ度深達（DDB）</h4><p>真皮深層。破れやすい水疱・痛覚鈍麻・まだら状。<br><b>TBSA計算対象</b></p></div><div class="depth-card d3"><h4>Ⅲ度（全層）</h4><p>皮膚全層壊死。羊皮紙様白色・炭化・<b>無痛</b>。<br><b>TBSA計算対象</b></p></div></div>` },
+  { img: "i9473", imgPos: "km", ch: 3, icon: "sun", t: "Ⅰ度熱傷（表層熱傷）", km: "表皮のみの損傷。日焼けのような発赤とヒリヒリした強い痛みが特徴", c: `<ul><li>水疱は形成されず、痕を残さず自然治癒します。</li><li><span class="hl">【超重要！】全身体表面積（TBSA）の計算からは除外</span>して評価します。</li></ul>` },
+  { img: "i9474", imgPos: "km", ch: 3, icon: "droplet", t: "Ⅱ度浅達性熱傷（SDB）", km: "キーワードは”水疱”：真皮浅層の損傷で鮮紅色の水疱と激しい痛みを伴う", c: `<ul><li>水疱底は赤く湿潤しており、痛覚神経が刺激され強い自覚痛が存在します。</li><li>約1〜2週間で再上皮化します。TBSA計算に含めます。</li></ul>` },
+  { ch: 3, icon: "skin", t: "Ⅱ度深達性熱傷（DDB）", km: "キーワードは”皮膚剥離”：水疱底は白色・まだら模様で痛みが鈍麻する", c: `<ul><li>水疱が破れやすく皮膚剥離を認めます。神経末端損傷のため痛みは鈍いです。</li><li>瘢痕を残しやすく、TBSA計算に含めます。</li></ul>` },
+  { img: "i9475", imgPos: "km", ch: 3, icon: "burn", t: "Ⅲ度熱傷（全層熱傷）", km: "皮膚全層壊死。羊皮紙様の白色乾燥または炭化を呈する", c: `<ul><li>表皮〜皮下組織まで破壊され、創面は硬化・乾燥します。</li><li>自律的再上皮化は望めず、<span class="hl">植皮手術が必須</span>となります。</li></ul>` },
+  { img: "i9476", imgPos: "body", ch: 3, icon: "shield", t: "現場で見分けるピットフォール", km: "痛みが「消失」＝痛がっていない≠軽症！痛みが無いのはⅢ度熱傷の証拠", c: `<ul><li>痛覚神経自体が破壊・消失しているため、傷病者は痛みを訴えません。</li><li>無感覚な部位があれば、速やかにⅢ度熱傷を疑ってください。</li></ul>` },
+  { ch: 3, icon: "scissors", t: "衣服の焼け焦げサイン", km: "焼け落ちた衣服や皮膚への固着部分は無理に除去しない！", c: `<ul><li>無理な脱衣は創面を広げ皮膚剥離を悪化させます。周囲のみカットします。</li></ul>` },
+  { ch: 3, quiz: true, icon: "badge", t: "第3章 確認クイズ：深達度の識別", q: "熱傷深達度の評価で「現場活動において誤っている対応」はどれですか？", o: ["Ⅰ度熱傷（日焼け様の発赤）はTBSAの計算から除外する", "痛みを感じていない部位は軽症と判断し、観察を後回しにする", "皮膚に固着した衣類は剥がさず、周囲をハサミで切り取る"], a: 1, e: "痛みが消失している部位は痛覚神経まで破壊された「Ⅲ度熱傷」の可能性が高く、非常に重症です！痛がり方だけで軽症と判断してはいけません。", h: "痛覚神経が死滅すると痛みが無くなります。「痛くない＝軽症」ではありません！" },
+  { ch: 4, icon: "calc", t: "熱傷面積（TBSA）算出の重要性", km: "正確な受傷面積（TBSA）把握 → 介入・医療機関選定の根拠", c: `<ul><li><span class="hl">TBSA ＝ Ⅰ度を除いた「Ⅱ度 ＋ Ⅲ度」の合計面積</span>で算出。</li><li>緊急度・重症度判定およびショック輸液要請の決定打となります。</li></ul>` },
+  { ch: 4, cutinQ: true, icon: "grid", t: "広範囲の評価「9の法則」", km: "成人：頭部9%・上肢各9%・体幹前18%・体幹後18%・下肢各18%・会陰1%", c: `<ul><li>広範囲熱傷の場合、部位ごとの9%単位で迅速に暗算評価します。</li></ul>` },
+  { ch: 4, icon: "child", t: "小児の評価「5の法則」", km: "小児は頭部が大きく下肢が小さいため、9の法則ではなく「5の法則」で評価する", c: `<ul><li>成人の9の法則をそのまま使うと誤差が大きくなるため、小児は<span class="hl">5の法則</span>を用います。</li></ul><div class="depth-grid"><div class="depth-card d1"><h4>頭部</h4><p><b>20%</b></p></div><div class="depth-card d2s"><h4>体幹</h4><p>前面 <b>20%</b> ／ 後面 <b>20%</b></p></div><div class="depth-card d2d"><h4>上肢</h4><p>各 <b>10%</b></p></div><div class="depth-card d3"><h4>下肢</h4><p>各 <b>10%</b></p></div></div><p style="margin:10px 0 0;">合計 100%（20＋40＋20＋20）</p>` },
+  { ch: 4, icon: "hand", t: "局所の評価「手掌法」", km: "「傷病者本人の手指を含めた手のひら全体」＝ 1%として計算", c: `<ul><li>隊員のの手ではなく、<span class="hl">「傷病者本人の手のひらサイズ」</span>を1%基準とします。</li></ul>` },
+  { ch: 4, gimmick: "mannequin", icon: "calc", t: "第4章 ギミック：3Dマネキン TBSA評価実技トレーニング", km: "3Dマネキンにランダム出現する熱傷深達度（1度・2度・3度）を見極め、正しいTBSA%を算出せよ！", c: `<div class="tool-box"><p style="margin:0 0 8px; font-weight:bold; color:var(--accent-cyan);">※【1度熱傷はTBSA除外・2度と3度は計算対象】スワイプで回転して前面・背面を確認してください（正解しないと次に進めません）</p><div class="mode-row"><button class="tool-btn active" id="modeAdultBtn" onclick="setBurnMode('adult')">成人モード（9の法則）</button><button class="tool-btn" id="modeChildBtn" onclick="setBurnMode('child')">小児モード（5の法則）</button></div><div class="burn3d-wrap"><div id="burn3dBox" class="burn3d-box"></div><div class="burn3d-hint">スワイプで回転 ↔</div></div><div class="legend-row"><div class="legend-item"><div class="legend-color" style="background:#f5d0b4;"></div>正常</div><div class="legend-item"><div class="legend-color" style="background:#ff99bb;"></div>1度（TBSA<b>除外</b>）</div><div class="legend-item"><div class="legend-color" style="background:#ff1e3c; border:1px solid cyan; border-radius:50%;"></div>2度（水疱）</div><div class="legend-item"><div class="legend-color" style="background:#222; border:1px solid #fff;"></div>3度</div></div><button class="tool-btn active" onclick="generateRandomBurnScenario()">症例をランダム生成</button><div class="form-group" style="margin-top:14px;"><label>この症例の正しいTBSA (全身体表面積 %) を入力:</label><div style="display:flex; gap:10px;"><input type="number" id="userTbsaInput" class="form-control" step="0.5" inputmode="decimal" placeholder="数字のみ入力 (例: 27)" style="font-size:18px; font-weight:bold;"><button class="tool-btn active" style="min-width:120px; font-size:17px;" onclick="verifyTbsaAnswer()">解答判定</button></div></div><div class="tool-res" id="tbsaEvalResult">「症例をランダム生成」または数値を入力して判定してください</div></div>` },
+  { ch: 5, icon: "cross", t: "Artz（アルツ）基準による重症ライン", km: "「重症熱傷」＝ 成人TBSA 20%以上、小児・高齢者 10%以上！", c: `<ul><li>小児・高齢者は生理的予備能力が低いため成人の半分の面積で重症となります。</li><li>全身管理と厳重な保温が必須です。</li></ul>` },
+  { ch: 5, icon: "burn", t: "Ⅲ度熱傷の面積基準", km: "Ⅲ度熱傷は面積が小さくても重症！成人はⅢ度10%以上、小児・高齢者はⅢ度5%以上", c: `<ul><li>Ⅲ度熱傷は自力での再上皮化が望めず、<span class="hl">植皮手術が必要</span>となります。</li><li><span class="hl">成人：Ⅲ度TBSA 10%以上</span></li><li><span class="hl">小児・高齢者：Ⅲ度TBSA 5%以上</span></li><li>TBSAの算出では、Ⅱ度に加えてⅢ度の面積も必ず評価します。</li></ul>` },
+  { ch: 5, icon: "alert", t: "面積に関わらず重症とみなす場合", km: "気道熱傷、電撃傷、特殊解剖部位は面積が小さくても「一発重症」！", c: `<ul><li>面積数値だけで判断せず、特殊受傷機転や部位リスクから即座に<span class="hl">三次医療機関</span>を選定します。</li></ul>` },
+  { ch: 5, icon: "face", t: "危険部位①「顔面・頸部」", km: "急速な上気道浮腫による「気道閉塞（Aの異常）」のリスク！", c: `<ul><li>組織が疎であり浮腫進行が非常に早いため、搬送途上で窒息する危険があります。</li></ul>` },
+  { ch: 5, icon: "bone", t: "危険部位②「手足・関節部」", km: "将来的な瘢痕拘縮とADL障害に直結する部位", c: `<ul><li>救命後を見据えた専門的皮膚・創傷管理が必要なため、高度医療施設へ引き継ぎます。</li></ul>` },
+  { ch: 5, icon: "biohazard", t: "危険部位③「会陰部」", km: "排泄物（常在菌）による激しい重篤感染・敗血症リスク！", c: `<ul><li>見落としやすいため全身観察（E）の際に必ず確認します。</li></ul>` },
+  { ch: 5, icon: "alert", t: "全周性の熱傷", km: "四肢の全周性Ⅲ度熱傷は焼痂が止血帯のように作用し、患肢の循環が停止する！", c: `<ul><li>Ⅲ度熱傷は伸縮しない硬い焼痂を形成する。</li><li>四肢の全周性Ⅲ度熱傷は浮腫の進行に伴って、焼痂が止血帯のように作用し、患肢の循環が停止する。</li><li><span class="hl">すべての四肢の熱傷では定期的に末梢の脈拍のチェックを行うべき。</span></li></ul>` },
+  { ch: 5, quiz: true, icon: "badge", t: "第5章 クイズ1/3：成人Artz基準", q: "成人（15〜64歳）において、Artz基準で「重症熱傷」と判定されるTBSAのラインはどれですか？", o: ["TBSA 10%以上", "TBSA 20%以上", "TBSA 30%以上"], a: 1, e: "成人ではⅡ度＋Ⅲ度熱傷の合計がTBSA 20%以上で「重症熱傷」に分類されます。", h: "成人は20%以上、小児・高齢者はその半分の10%以上が基準です。" },
+  { ch: 5, quiz: true, icon: "badge", t: "第5章 クイズ2/3：小児・高齢者Artz基準", q: "小児（15歳未満）または高齢者（65歳以上）において「重症熱傷」とされるTBSA基準はどれですか？", o: ["TBSA 5%以上", "TBSA 10%以上", "TBSA 15%以上"], a: 1, e: "小児・高齢者は生理的予備能力が低く脱水・ショックに陥りやすいため、成人の半分の「TBSA 10%以上」で重症となります。", h: "成人の基準（20%）の「半分」が回答です。" },
+  { ch: 5, quiz: true, icon: "badge", t: "第5章 クイズ3/3：一発重症の危険部位", q: "TBSAが5%と狭範囲であっても、即座に「三次医療機関選定（一発重症）」となる条件はどれですか？", o: ["前腕部のⅠ度熱傷のみ", "顔面・気道熱傷の疑い、または手足・主要関節部・会陰部の受傷", "背部の軽度な発赤"], a: 1, e: "気道閉塞リスク（顔面/気道）、機能障害リスク（関節/手足）、重篤感染リスク（会陰部）は面積に関わらず三次医療機関受入が必須です！", h: "窒息や感染、機能障害に直結する危険部位を選びましょう。" },
+  { ch: 6, icon: "wind", t: "気道熱傷の恐怖", km: "喉頭浮腫と窒息は「時間差」で引き起こされる！", c: `<ul><li>接触直後は自発呼吸があっても、数時間かけて気道が狭窄・閉塞します。</li><li>救急隊が現場を離れた後にCPAへ至る危険を孕んでいます。</li></ul>` },
+  { ch: 6, icon: "siren", t: "気道熱傷の3大徴候", km: "口周りの熱傷、口腔内煤、嗄声・鼻毛焦げがあれば気道緊急！", c: `<ul><li>いびき様呼吸や流涎（よだれ）が出現すればEmergency！</li><li>1つでも該当すれば即座に<span class="hl">高濃度酸素投与＋三次医療機関選定</span>。</li></ul>` },
+  { ch: 6, icon: "gas", t: "火災現場①「一酸化炭素（CO）中毒」", km: "SpO2は COヘモグロビンにより「偽高値（98〜100%）」を示す！", c: `<ul><li>パルスオキシメーターに騙されず、火災受傷全例で<span class="hl">高濃度酸素を投与</span>します。</li></ul>` },
+  { ch: 6, icon: "skull", t: "火災現場②「シアン化水素中毒」", km: "酸素を吸わせても改善しないならばシアン中毒を疑え！", c: `<ul><li>建材・プラスチック燃焼で発生。ミトコンドリアの細胞呼吸を阻害。</li><li>血液は「静脈血も鮮紅色」。早期の解毒剤投与が必要です。</li></ul>` },
+  { ch: 6, quiz: true, icon: "alert", t: "第6章 ケーススタディクイズ：SpO2の罠", q: "火災現場から救出。鼻毛焦げあり、閉鎖空間受傷。バイタル測定でSpO2 99%を示しています。適切な介入は？", o: ["SpO2が99%で正常値のため、酸素投与は不要と判断する", "CO中毒の可能性を考慮し、SpO2表示に関わらず即座に高濃度酸素を投与する", "呼吸苦を訴えるまで部屋の空気で経過観察する"], a: 1, e: "パルスオキシメーターはCOヘモグロビンを酸素化ヘモグロビンと認識して99〜100%の『偽高値』を出します！外見上の値に騙されず即座に高濃度酸素投与を行ってください。", h: "一酸化炭素（CO）が結合するとSpO2メーターは『正常』と誤認します！" },
+  { ch: 7, icon: "heart", t: "ショックの発生メカニズム", km: "分布異常性 ＋ 循環血液量減少性ショックの複合病態", c: `<ul><li>サイトカインにより血管透過性が亢進し、水分・タンパクが組織へ流出。</li><li>出血がなくても著しい血管内脱水が起こります。</li></ul>` },
+  { ch: 7, icon: "iv", t: "ショック輸液の判断基準", km: "成人TBSA 15%以上は救急隊による早期ショック輸液要請を考慮", c: `<ul><li>時間が経つと血管確保が困難になります。早期輸液が急性腎障害や多臓器不全を防ぎます。</li></ul>` },
+  { ch: 7, icon: "child", t: "小児熱傷の脱水リスク", km: "小児は体液保持能力が低く、TBSA 10%で激しいショックに陥る", c: `<ul><li>体水分量が多く代償機構が破綻しやすいため、より急激に容態が悪化します。</li></ul>` },
+  { ch: 8, icon: "alert", t: "外傷死の3徴（Trauma Triad of Death）", km: "「低体温 ✕ アシドーシス ✕ 凝固異常」の負の連鎖！", c: `<ul><li>救急隊が現場で最も介入しやすい最重要要素は<span class="hl">「低体温の予防」</span>です。</li></ul>` },
+  { ch: 8, icon: "thermometer", t: "なぜ、熱傷で低体温？", km: "バリア機能障害と「気化熱」により猛烈に体温が奪われる！", c: `<ul><li>皮膚の体温保持機能喪失＋創面からの体液蒸発（気化熱）により急速に体温低下が進行します。</li></ul>` },
+  { ch: 8, icon: "clot", t: "低体温が引き起こす凝固異常", km: "体温低下により凝固酵素活性が低下し、制御不能なDICを招く", c: `<ul><li>血小板・凝固因子が機能不全に陥り、出血傾向が著増します。</li></ul>` },
+  { ch: 8, icon: "blanket", t: "救急隊ができる全身管理", km: "過度な冷却は避け、アルミシート等で全身を厳重に保温せよ！", c: `<ul><li>広範囲熱傷に対する長時間の冷水冷却は厳禁。<span class="hl">アルミシートや保温毛布で全身を被覆</span>します。</li></ul>` },
+  { ch: 8, quiz: true, icon: "badge", t: "第8章 確認クイズ：低体温とDIC予防", q: "外傷死の3徴（低体温・アシドーシス・凝固異常）において、広範囲熱傷傷病者に対し「救急隊が現場活動で最も直接的に予防・介入できる行動」はどれですか？", o: ["長時間の冷水冷却を避け、アルミシートや保温毛布で早期に全身保温を行う", "現場で輸血を開始する", "凝固因子を活性化させるため強いマッサージを行う"], a: 0, e: "熱傷創からの気化熱による低体温はDIC（凝固不全）を引き起こします！広範囲熱傷では長時間の冷却を避け、早期にアルミシートで全身保温することが命を救う介入です。", h: "「体温低下」を防ぐ介入を選びましょう。" },
+  { ch: 9, icon: "shirt", t: "衣服取り扱いの原則", km: "溶着・へばりついた衣服は安易に剥がすな！", c: `<ul><li>無理に剥がすと皮膚組織が破壊されます。固着衣服の周囲のみカットして搬送します。</li></ul>` },
+  { ch: 9, icon: "cuff", t: "バイタル測定時の注意点", km: "血圧計マンシェットの加圧で水疱を破砕しないよう注意！", c: `<ul><li>創部・水疱部を圧迫すると感染と組織破壊が進行します。非受傷部位または手動触診法に切り替えます。</li></ul>` },
+  { ch: 9, icon: "stretcher", t: "搬送具の選定と移動技術", km: "「スクープストレッチャー」等で体幹を曲げず愛護的に収容", c: `<ul><li>摩擦や剪断面力（ズレ）を防ぎ、組織破壊を最小限に抑えます。</li></ul>` },
+  { ch: 9, gimmick: "ng_game", icon: "alert", t: "第9章 ギミック：現場処置『NG行動』間違い探し", km: "タップして危険な現場処置を指摘してください", c: `<div class="tool-box"><p style="margin:0 0 10px; font-weight:bold;">以下の現場処置のうち【間違ったNG行動】をすべて選んでください:</p><div class="checkbox-group" id="ngGroup"><label class="checkbox-item"><input type="checkbox" data-ng="1" class="ng-chk"> 固着した化学繊衣服を無理やり引き剥がした</label><label class="checkbox-item"><input type="checkbox" data-ng="1" class="ng-chk"> 重症水疱のある右腕に自動血圧計を装着し高圧測定した</label><label class="checkbox-item"><input type="checkbox" data-ng="0" class="ng-chk"> スクープストレッチャーでフラットに収容した</label><label class="checkbox-item"><input type="checkbox" data-ng="1" class="ng-chk"> TBSA 25%の傷病者に現場で20分間全身冷水をかけ続けた</label></div><button class="tool-btn active" style="width:100%; font-size:18px; margin-top:10px;" onclick="checkNgGame()">回答チェック</button><div class="tool-res" id="ngResult">チェックしてボタンを押してください</div></div>` },
+  { ch: 10, isEmuStep: true, emuStepNum: 1, icon: "siren", t: "総合エミュ①：出動指令フェーズ", km: "「住宅火災発生、逃げ遅れの40代男性を救出中」での想起疾患と準備資材を考察せよ", c: `<div class="tool-box"><p style="margin:0 0 8px; font-weight:bold;">思考・記載シート（必須入力）:</p><textarea id="emu1_input" class="form-control" rows="5" placeholder="【考察記入例】\n・想起疾患：熱傷など\n・事前準備：○○準備..."></textarea><p style="font-size:14px; color:var(--accent-gold); margin-top:8px;">※記述を入力すると「次へ」進めます。</p></div>` },
+  { ch: 10, isEmuStep: true, emuStepNum: 2, icon: "siren", t: "総合エミュ②：出場途上フェーズ", km: "途上での隊員間ブリーフィング・役割分担と指示内容を考察せよ", c: `<div class="tool-box"><p style="margin:0 0 8px; font-weight:bold;">思考・記載シート（必須入力）:</p><textarea id="emu2_input" class="form-control" rows="5" placeholder="【考察記入例】\n・役割分担\n・活動方針など..."></textarea><p style="font-size:14px; color:var(--accent-gold); margin-top:8px;">※記述を入力すると「次へ」進めます。</p></div>` },
+  { ch: 10, isEmuStep: true, emuStepNum: 3, icon: "siren", t: "総合エミュ③：現場到着。傷病者は救急隊に付き添われている。座位。何度も咳き込んでおり、苦しそう。鼻毛が焦げており、顔は煤が付着。声はがらがら。右腕の腹側全体が白い。胸部、腹部（腹側）全体的に水疱を認める。意識清明、呼吸数24回、脈拍数80回、SPO2：98％、血圧110/95", km: "評価・介入することは？", c: `<div class="tool-box"><p style="margin:0 0 8px; font-weight:bold;">思考・記載シート（必須入力）:</p><textarea id="emu3_input" class="form-control" rows="5" placeholder="【考察記入例】\n・A(気道)○○\n・B(呼吸)○○\n・C(循環)○○触知\n・E(体温)：○○..."></textarea><p style="font-size:14px; color:var(--accent-gold); margin-top:8px;">※記述を入力すると「次へ」進めます。</p></div>` },
+  { ch: 10, isEmuStep: true, emuStepNum: 4, icon: "siren", t: "総合エミュ④：傷病者は鼻毛が焦げており、顔は煤が付着。声はがらがら。右腕の腹側全体が白い。胸部、腹部（腹側）全体的に水疱を認める。", km: "医師への病院連絡を考えよう", c: `<div class="tool-box"><p style="margin:0 0 8px; font-weight:bold;">思考・記載シート（必須入力）:</p><textarea id="emu4_input" class="form-control" rows="5" placeholder="【考察記入例】\n・報告文言：「〇〇歳男性・・・」..."></textarea><p style="font-size:14px; color:var(--accent-gold); margin-top:8px;">※記述を入力すると「次へ」進めます。</p></div>` },
+  { ch: 10, icon: "checklist", t: "ABCDEアプローチの再確認 ＆ 考察一括コピー", km: "熱傷救急活動 全チェックリスト と エミュレーション考察記録", c: `<ul><li><b>A (気道)</b>: 気道熱傷の早期認知・即時気道確保選定</li><li><b>B (呼吸)</b>: SpO2偽高値に騙されず高濃度酸素投与</li><li><b>C (循環)</b>: TBSA算出（1度除外）と早期ショック輸液指示要請</li><li><b>D (意識)</b>: 中枢神経障害・中毒症状の認知</li><li><b>E (体温)</b>: TBSA 10%以上は過度冷却回避＆アルミシート全身保温</li></ul><div class="tool-box" style="margin-top:16px;"><p style="margin:0 0 10px; font-weight:bold; color:var(--accent-gold);">【総合エミュレーション全フェーズ 記入内容の確認とコピー】</p><button class="copy-btn" onclick="copyAllEmuData()">入力した全考察内容を一括コピー</button><div id="copySuccessMsg" style="display:none; color:var(--accent-cyan); font-size:16px; margin-top:10px; font-weight:bold;">クリップボードにコピーしました！</div></div>` },
+  { ch: 10, icon: "star", t: "救急隊員へ贈るメッセージ", km: "「評価と介入を繰り返す」――あなたの早期介入が未来を繋ぐ", c: `<ul><li>皮膚の表面だけにとらわれず、気道・循環・体温という全身病態を見抜く目を持とう。</li><li>迅速な観察と的確な判断が患者の命を守ります。</li></ul>` }
+];
+
+
+let currentSlide = 0;
+const totalSlides = SLIDES.length;
+const solvedQuizzes = new Set();
+let mannequinScenario = { correctTbsa: 0, lines: [] };
+
+
+const slideContainer = document.getElementById("slideContainer");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const cntDisplay = document.getElementById("cnt");
+const barDisplay = document.getElementById("bar");
+const tocModal = document.getElementById("tocModal");
+const tocList = document.getElementById("tocList");
+const tocBtn = document.getElementById("tocBtn");
+const closeToc = document.getElementById("closeToc");
+const fsBtn = document.getElementById("fsBtn");
+const ov = document.getElementById("ov");
+const ovTitle = document.getElementById("ovTitle");
+const ovDesc = document.getElementById("ovDesc");
+const ovBtn = document.getElementById("ovBtn");
+const qov = document.getElementById("qov");
+const qInput = document.getElementById("qInput");
+
+
+SLIDES.forEach((s, idx) => {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.id = "slide-" + idx;
+
+
+  let bodyHtml = "";
+  if (s.isTitle) {
+    bodyHtml = `<div class="title-card"><div class="card-icon" style="width:90px; height:90px; margin-bottom:20px;">${SVG_ICONS.burn}</div><h1 class="hl">${s.t}</h1><p>${s.sub}</p><button class="start-btn" onclick="showSlide(1)">${s.btn}</button></div>`;
+  } else if (s.quiz) {
+    bodyHtml = `<div class="card-header"><div class="card-icon">${SVG_ICONS[s.icon] || SVG_ICONS.badge}</div><div class="card-title-group"><span class="chapter-badge">Chapter ${s.ch} - クイズ</span><h2>${s.t}</h2></div></div><div class="card-content"><p style="font-weight:bold; margin-bottom:16px;">${s.q}</p><div>${s.o.map((opt, oIdx) => `<button class="opt" onclick="checkQuiz(${idx}, ${oIdx})">${"ABC"[oIdx]}. ${opt}</button>`).join("")}</div></div>`;
+  } else {
+    bodyHtml = `<div class="card-header"><div class="card-icon">${SVG_ICONS[s.icon] || SVG_ICONS.target}</div><div class="card-title-group"><span class="chapter-badge">Chapter ${s.ch} : ${CHAPTERS.find(c => c.num === s.ch)?.title || ""}</span><h2>${s.t}</h2></div></div><div class="card-content">${s.km ? `<div class="key-msg">${s.km}</div>` : ""}${s.img && s.imgPos === "km" ? `<img class="slide-img" src="${IMGS[s.img]}" alt="" onerror="this.style.display='none'">` : ""}${s.c || ""}${s.img && s.imgPos === "body" ? `<img class="slide-img" src="${IMGS[s.img]}" alt="" onerror="this.style.display='none'">` : ""}</div><div class="note-box">※実際の活動は、所属消防本部のプロトコルと医師の指示に従ってください。</div>`;
+  }
+  card.innerHTML = bodyHtml;
+  slideContainer.appendChild(card);
+});
+
+
+const jumpFlash = document.getElementById("jumpFlash");
+function playJumpFlash() { jumpFlash.classList.remove("go"); void jumpFlash.offsetWidth; jumpFlash.classList.add("go"); }
+
+
+CHAPTERS.forEach((c, ci) => {
+  const item = document.createElement("div");
+  item.style.setProperty("--i", ci);
+  item.className = "toc-item";
+  item.innerHTML = `<span class="toc-num">Chapter ${c.num}</span><span class="toc-title">${c.title}</span>`;
+  item.onclick = () => { jumpToSlide(c.slides[0] - 1); tocModal.classList.remove("show"); playJumpFlash(); };
+  tocList.appendChild(item);
+});
+
+
+const chIntro = document.getElementById("chIntro");
+let chIntroTimer = null;
+function chapterOf(i) { return (SLIDES[i] && SLIDES[i].ch) || 0; }
+function playChapterIntro(num) {
+  const ch = CHAPTERS.find(c => c.num === num);
+  if (!ch) return;
+  document.getElementById("chNum").textContent = "Chapter " + num;
+  document.getElementById("chTitle").textContent = ch.title;
+  chIntro.classList.remove("show");
+  void chIntro.offsetWidth;
+  chIntro.classList.add("show");
+  clearTimeout(chIntroTimer);
+  chIntroTimer = setTimeout(() => chIntro.classList.remove("show"), 1500);
+}
+
+
+function showSlide(index) {
+  const prevCh = chapterOf(currentSlide);
+  currentSlide = Math.max(0, Math.min(totalSlides - 1, index));
+  const allCards = document.querySelectorAll(".card");
+  allCards.forEach((c, i) => {
+    c.classList.toggle("on", i === currentSlide);
+  });
+
+
+  const newCh = chapterOf(currentSlide);
+  if (newCh !== prevCh && newCh !== 0) playChapterIntro(newCh);
+
+
+  const progressPercent = ((currentSlide + 1) / totalSlides) * 100;
+  barDisplay.style.width = progressPercent + "%";
+  cntDisplay.textContent = `${currentSlide + 1} / ${totalSlides}`;
+
+
+  prevBtn.disabled = (currentSlide === 0);
+
+
+  const targetSlideObj = SLIDES[currentSlide];
+  if (targetSlideObj.quiz && !solvedQuizzes.has(currentSlide)) { nextBtn.disabled = true; }
+  else if (targetSlideObj.gimmick === "mannequin" && !solvedQuizzes.has(currentSlide)) { nextBtn.disabled = true; }
+  else { nextBtn.disabled = (currentSlide === totalSlides - 1); }
+
+
+  if (targetSlideObj.gimmick === "mannequin") {
+    initBurn3d();
+    resizeBurn3d();
+    startBurn3d();
+    if (mannequinScenario.correctTbsa === 0 && burnReady) { generateRandomBurnScenario(); }
+  } else {
+    stopBurn3d();
+  }
+}
+
+
+function jumpToSlide(index) { showSlide(index); }
+
+
+nextBtn.onclick = () => {
+  const curObj = SLIDES[currentSlide];
+  if (curObj.isEmuStep) {
+    const textarea = document.getElementById(`emu${curObj.emuStepNum}_input`);
+    if (!textarea || !textarea.value.trim()) { alert("※次のスライドへ進むには、このフェーズの考察・記述を入力してください！"); return; }
+  }
+  if (curObj.cutinQ && !solvedQuizzes.has(currentSlide)) { openQuestion(); return; }
+  showSlide(currentSlide + 1);
+};
+
+
+prevBtn.onclick = () => showSlide(currentSlide - 1);
+
+
+document.addEventListener("keydown", (e) => {
+  if (qov.classList.contains("show")) return;
+  const tag = e.target && e.target.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA") return;
+  if (e.key === "ArrowRight") nextBtn.click();
+  if (e.key === "ArrowLeft") prevBtn.click();
+});
+
+
+tocBtn.onclick = () => tocModal.classList.add("show");
+closeToc.onclick = () => tocModal.classList.remove("show");
+
+
+fsBtn.onclick = () => { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => {}); } else { document.exitFullscreen().catch(() => {}); } };
+
+
+function checkQuiz(slideIdx, optionIdx) {
+  const quizData = SLIDES[slideIdx];
+  if (optionIdx === quizData.a) {
+    solvedQuizzes.add(slideIdx);
+    openCutIn(true, "正解！", quizData.e, "次へ進む", () => { showSlide(slideIdx + 1); });
+    triggerBlueStars();
+  } else { openCutIn(false, "不正解…", quizData.h, "もう一度挑戦", null); }
+}
+
+
+let cutInCallback = null;
+function openCutIn(isCorrect, title, desc, btnText, callback) {
+  ov.className = "show " + (isCorrect ? "ok" : "ng");
+  ovTitle.textContent = title;
+  ovDesc.textContent = desc;
+  ovBtn.textContent = btnText;
+  cutInCallback = callback;
+  requestAnimationFrame(() => { requestAnimationFrame(() => { ov.classList.add("in"); }); });
+}
+
+
+ovBtn.onclick = () => { ov.className = ""; if (cutInCallback) cutInCallback(); };
+
+
+/* ===== スライド15：カットイン自由記述問題 ===== */
+function openQuestion() {
+  qInput.value = "";
+  qov.className = "show";
+  requestAnimationFrame(() => { requestAnimationFrame(() => { qov.classList.add("in"); setTimeout(() => qInput.focus(), 350); }); });
+}
+
+
+function closeQuestion() { qov.className = ""; }
+
+
+function submitQuestion() {
+  const v = parseFloat(qInput.value);
+  if (isNaN(v)) { qInput.focus(); return; }
+  if (Math.abs(v - 4.5) < 0.01) {
+    solvedQuizzes.add(currentSlide);
+    closeQuestion();
+    openCutIn(true, "正解！", "右腕1本は9%。腹側（前面）だけなので、その半分の4.5%です！", "次へ進む", () => { showSlide(currentSlide + 1); });
+    triggerBlueStars();
+  } else {
+    openCutIn(false, "不正解…", "右腕1本（全周）は9%です。「腹側だけ」は全周の何分の一でしょう？", "もう一度挑戦", null);
+  }
+}
+
+
+document.getElementById("qBtn").onclick = submitQuestion;
+document.getElementById("qBack").onclick = closeQuestion;
+qInput.addEventListener("keydown", (e) => { if (e.key === "Enter") submitQuestion(); });
+
+
+/* ===== スライド18：3Dマネキン TBSA評価 ===== */
+let burnMode = "adult";
+let burnReady = false;
+let b3 = { scene: null, camera: null, renderer: null, mannequin: null, blisters: null, parts: {}, raf: null };
+let burnDragging = false, burnPrevX = 0;
+let BURN_COLORS = null;
+
+
+// [表示名, 部位, 面(front/back/around), 面積%]
+const BURN_RULES = {
+  adult: [
+    ["頭部", "head", "around", 9],
+    ["胸部（前面）", "chest", "front", 9],
+    ["腹部（前面）", "abdomen", "front", 9],
+    ["背部上部", "chest", "back", 9],
+    ["背部下部", "abdomen", "back", 9],
+    ["右腕", "rArm", "around", 9],
+    ["左腕", "lArm", "around", 9],
+    ["右大腿", "rThigh", "around", 9],
+    ["左大腿", "lThigh", "around", 9],
+    ["右下腿", "rShin", "around", 9],
+    ["左下腿", "lShin", "around", 9],
+    ["会陰部", "groin", "around", 1]
+  ],
+  child: [
+    ["頭部", "head", "around", 20],
+    ["胸部（前面）", "chest", "front", 10],
+    ["腹部（前面）", "abdomen", "front", 10],
+    ["背部上部", "chest", "back", 10],
+    ["背部下部", "abdomen", "back", 10],
+    ["右腕", "rArm", "around", 10],
+    ["左腕", "lArm", "around", 10],
+    ["右大腿", "rThigh", "around", 5],
+    ["左大腿", "lThigh", "around", 5],
+    ["右下腿", "rShin", "around", 5],
+    ["左下腿", "lShin", "around", 5]
+  ]
+};
+
+
+function initBurn3d() {
+  if (burnReady) return;
+  const box = document.getElementById("burn3dBox");
+  if (!box) return;
+  if (typeof THREE === "undefined") {
+    box.innerHTML = '<p style="padding:20px;">3D表示ライブラリを読み込めませんでした。ネットワーク接続を確認してください。</p>';
+    return;
+  }
+  BURN_COLORS = [0xf5d0b4, 0xff99bb, 0xff1e3c, 0x222222].map(h => new THREE.Color(h));
+
+
+  b3.scene = new THREE.Scene();
+  b3.camera = new THREE.PerspectiveCamera(45, Math.max(1, box.clientWidth) / Math.max(1, box.clientHeight), 0.1, 100);
+  b3.camera.position.set(0, 1.05, 8.5);
+
+
+  b3.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  b3.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  b3.renderer.setSize(box.clientWidth, box.clientHeight);
+  box.appendChild(b3.renderer.domElement);
+
+
+  b3.scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+  const dl = new THREE.DirectionalLight(0xbc13fe, 1);
+  dl.position.set(5, 5, 5);
+  b3.scene.add(dl);
+  const dl2 = new THREE.DirectionalLight(0xffffff, 0.5);
+  dl2.position.set(-3, 3, -6);
+  b3.scene.add(dl2);
+
+
+  b3.mannequin = new THREE.Group();
+  b3.scene.add(b3.mannequin);
+  b3.blisters = new THREE.Group();
+  b3.mannequin.add(b3.blisters);
+
+
+  // 画面右側が傷病者の左側（正面向き）
+  const defs = [
+    ["head", new THREE.SphereGeometry(0.5, 32, 32), 0, 2.8],
+    ["chest", new THREE.BoxGeometry(1.2, 0.8, 0.6), 0, 2.0],
+    ["abdomen", new THREE.BoxGeometry(1.1, 0.7, 0.5), 0, 1.3],
+    ["rArm", new THREE.CylinderGeometry(0.15, 0.1, 1.4, 16), -0.8, 1.8],
+    ["lArm", new THREE.CylinderGeometry(0.15, 0.1, 1.4, 16), 0.8, 1.8],
+    ["groin", new THREE.ConeGeometry(0.3, 0.3, 4), 0, 0.9],
+    ["rThigh", new THREE.CylinderGeometry(0.25, 0.2, 1.0, 16), -0.35, 0.3],
+    ["lThigh", new THREE.CylinderGeometry(0.25, 0.2, 1.0, 16), 0.35, 0.3],
+    ["rShin", new THREE.CylinderGeometry(0.2, 0.15, 1.0, 16), -0.35, -0.7],
+    ["lShin", new THREE.CylinderGeometry(0.2, 0.15, 1.0, 16), 0.35, -0.7]
+  ];
+  defs.forEach(([name, geo, x, y]) => {
+    const g = geo.toNonIndexed();
+    g.setAttribute("color", new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 3), 3));
+    const mat = new THREE.MeshPhongMaterial({ color: 0xffffff, vertexColors: true });
+    const mesh = new THREE.Mesh(g, mat);
+    mesh.position.set(x, y, 0);
+    b3.mannequin.add(mesh);
+    b3.parts[name] = { mesh: mesh, f: 0, b: 0 };
+    paintBurnPart(b3.parts[name]);
+  });
+
+
+  box.addEventListener("pointerdown", (e) => {
+    burnDragging = true;
+    burnPrevX = e.clientX;
+    try { box.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  box.addEventListener("pointermove", (e) => {
+    if (!burnDragging) return;
+    b3.mannequin.rotation.y += (e.clientX - burnPrevX) * 0.012;
+    burnPrevX = e.clientX;
+  });
+  const endDrag = () => { burnDragging = false; };
+  box.addEventListener("pointerup", endDrag);
+  box.addEventListener("pointercancel", endDrag);
+
+
+  burnReady = true;
+}
+
+
+function paintBurnPart(p) {
+  const geo = p.mesh.geometry;
+  const pos = geo.attributes.position;
+  const col = geo.attributes.color;
+  for (let i = 0; i < pos.count; i += 3) {
+    const z = (pos.getZ(i) + pos.getZ(i + 1) + pos.getZ(i + 2)) / 3;
+    const c = BURN_COLORS[z >= 0 ? p.f : p.b];
+    for (let j = 0; j < 3; j++) col.setXYZ(i + j, c.r, c.g, c.b);
+  }
+  col.needsUpdate = true;
+}
+
+
+function addBurnBlisters(part, sign) {
+  const mesh = part.mesh;
+  const bbox = new THREE.Box3().setFromObject(mesh);
+  const size = bbox.getSize(new THREE.Vector3());
+  const rc = new THREE.Raycaster();
+  const geo = new THREE.SphereGeometry(0.045, 8, 8);
+  const mat = new THREE.MeshPhongMaterial({ color: 0x00ffff, transparent: true, opacity: 0.75 });
+  let placed = 0, tries = 0;
+  while (placed < 10 && tries < 80) {
+    tries++;
+    const x = bbox.min.x + Math.random() * size.x;
+    const y = bbox.min.y + Math.random() * size.y;
+    rc.set(new THREE.Vector3(x, y, sign * 6), new THREE.Vector3(0, 0, -sign));
+    const hit = rc.intersectObject(mesh, false)[0];
+    if (hit) {
+      const b = new THREE.Mesh(geo, mat);
+      b.position.set(hit.point.x, hit.point.y, hit.point.z + sign * 0.02);
+      b3.blisters.add(b);
+      placed++;
+    }
+  }
+}
+
+
+function resetBurnMannequin() {
+  if (!burnReady) return;
+  Object.values(b3.parts).forEach(p => {
+    p.f = 0; p.b = 0;
+    p.mesh.material.emissive.setRGB(0, 0, 0);
+    paintBurnPart(p);
+  });
+  while (b3.blisters.children.length > 0) { b3.blisters.remove(b3.blisters.children[0]); }
+  b3.mannequin.rotation.y = 0;
+  b3.mannequin.updateMatrixWorld(true);
+}
+
+
+function burn3dLoop() {
+  b3.raf = requestAnimationFrame(burn3dLoop);
+  const t = Date.now() * 0.005;
+  Object.values(b3.parts).forEach(p => {
+    if (p.f === 3 || p.b === 3) { const g = Math.sin(t) * 0.08 + 0.08; p.mesh.material.emissive.setRGB(g, g, g); }
+  });
+  b3.blisters.children.forEach(b => { const s = 1 + Math.sin(t + b.position.y * 10) * 0.1; b.scale.set(s, s, s); });
+  b3.renderer.render(b3.scene, b3.camera);
+}
+
+
+function startBurn3d() { if (burnReady && !b3.raf) burn3dLoop(); }
+function stopBurn3d() { if (b3.raf) { cancelAnimationFrame(b3.raf); b3.raf = null; } }
+
+
+function resizeBurn3d() {
+  if (!burnReady) return;
+  const box = document.getElementById("burn3dBox");
+  if (!box || box.clientWidth === 0 || box.clientHeight === 0) return;
+  b3.camera.aspect = box.clientWidth / box.clientHeight;
+  b3.camera.updateProjectionMatrix();
+  b3.renderer.setSize(box.clientWidth, box.clientHeight);
+}
+window.addEventListener("resize", resizeBurn3d);
+
+
+function setBurnMode(mode) {
+  burnMode = mode;
+  document.getElementById("modeAdultBtn").classList.toggle("active", mode === "adult");
+  document.getElementById("modeChildBtn").classList.toggle("active", mode === "child");
+  generateRandomBurnScenario();
+}
+
+
+function generateRandomBurnScenario() {
+  if (!burnReady) return;
+  resetBurnMannequin();
+  const rules = BURN_RULES[burnMode].slice().sort(() => Math.random() - 0.5);
+  const picked = rules.slice(0, 2 + Math.floor(Math.random() * 3));
+  const sideName = { front: "前面", back: "背面", around: "全周" };
+  const degName = ["", "Ⅰ度", "Ⅱ度", "Ⅲ度"];
+  let total = 0;
+  const lines = [];
+  picked.forEach((r, i) => {
+    let [label, partName, side, value] = r;
+    let deg = 1 + Math.floor(Math.random() * 3);
+    if (i === 0 && deg === 1) deg = 2 + Math.floor(Math.random() * 2);
+    if (side === "around" && Math.random() < 0.2) {
+      side = Math.random() < 0.5 ? "front" : "back";
+      value = value / 2;
+    }
+    const p = b3.parts[partName];
+    if (side === "front" || side === "around") p.f = deg;
+    if (side === "back" || side === "around") p.b = deg;
+    paintBurnPart(p);
+    if (deg === 2) {
+      if (side === "front" || side === "around") addBurnBlisters(p, 1);
+      if (side === "back" || side === "around") addBurnBlisters(p, -1);
+    }
+    if (deg >= 2) { total += value; lines.push(`${label}（${sideName[side]}）${degName[deg]}：${value}%`); }
+    else { lines.push(`${label}（${sideName[side]}）${degName[deg]}：除外`); }
+  });
+  mannequinScenario.correctTbsa = Math.round(total * 10) / 10;
+  mannequinScenario.lines = lines;
+  const resDiv = document.getElementById("tbsaEvalResult");
+  if (resDiv) { resDiv.textContent = "新しい症例が生成されました。深達度を見極めてTBSA%を入力してください。"; resDiv.style.color = "var(--text-main)"; }
+  const inp = document.getElementById("userTbsaInput");
+  if (inp) inp.value = "";
+}
+
+
+function verifyTbsaAnswer() {
+  const inputEl = document.getElementById("userTbsaInput");
+  const userVal = parseFloat(inputEl.value);
+  const correct = mannequinScenario.correctTbsa;
+  const resDiv = document.getElementById("tbsaEvalResult");
+  if (isNaN(userVal)) { resDiv.textContent = "数値を入力してください。"; resDiv.style.color = "var(--accent-red)"; return; }
+  if (Math.abs(userVal - correct) < 0.05) {
+    solvedQuizzes.add(currentSlide);
+    nextBtn.disabled = false;
+    openCutIn(true, "正解！", `正確なTBSA算定（${correct}%）です！1度熱傷を除外した評価ができています。\n\n【内訳】\n${mannequinScenario.lines.join("\n")}`, "次へ進む", () => { showSlide(currentSlide + 1); });
+    triggerBlueStars();
+  } else {
+    resDiv.textContent = `不正解… 入力: ${userVal}% (※【1度熱傷はTBSAから除外】されているか再確認してください)`;
+    resDiv.style.color = "var(--accent-red)";
+    openCutIn(false, "算定エラー", "1度熱傷（ピンク色）はTBSA計算から除外します！2度（赤）と3度（黒）の部位のみを加算してください。前面・背面も回転して確認しましょう。", "もう一度計算する", null);
+  }
+}
+
+
+function checkNgGame() {
+  const checked = document.querySelectorAll(".ng-chk:checked");
+  let ngSelectedCount = 0;
+  let correctOkSelected = false;
+  checked.forEach(c => { if (c.dataset.ng === "1") ngSelectedCount++; if (c.dataset.ng === "0") correctOkSelected = true; });
+  const res = document.getElementById("ngResult");
+  if (ngSelectedCount === 3 && !correctOkSelected) { res.innerHTML = `<span style="color:#00f0ff;">パーフェクト正解！</span><br>3つの危険なNG行動（無理な脱衣・水疱部圧迫マンシェット・長時間の冷水冷却）をすべて見抜きました！`; }
+  else { res.innerHTML = `<span style="color:#ff0055;">再確認が必要です！</span><br>NG行動は「固着衣服の剥離」「水疱部のマンシェット圧迫」「20分の長冷水冷却」の3つです。（スクープストレッチャーは正しい処置です）`; }
+}
+
+
+function copyAllEmuData() {
+  const e1 = document.getElementById("emu1_input")?.value.trim() || "（未入力）";
+  const e2 = document.getElementById("emu2_input")?.value.trim() || "（未入力）";
+  const e3 = document.getElementById("emu3_input")?.value.trim() || "（未入力）";
+  const e4 = document.getElementById("emu4_input")?.value.trim() || "（未入力）";
+  const fullReport = `【火災事例 傷病者救急活動 総合エミュレーション考察記録】\n\n■ 1. 出動指令フェーズ (想起疾患・準備資材)\n${e1}\n\n■ 2. 出場途上フェーズ (隊員間ブリーフィング・役割分担)\n${e2}\n\n■ 3. 現場到着・ABCDE評価フェーズ (観察・緊急介入)\n${e3}\n\n■ 4. 病院連絡・選定フェーズ (指示要請プレゼンテーション)\n${e4}`;
+  navigator.clipboard.writeText(fullReport).then(() => {
+    const msg = document.getElementById("copySuccessMsg");
+    if (msg) { msg.style.display = "block"; setTimeout(() => msg.style.display = "none", 4000); }
+  }).catch(() => { alert("コピーに失敗しました。手動でコピーしてください:\n\n" + fullReport); });
+}
+
+
+const emberCanvas = document.getElementById("emberCanvas");
+const emberCtx = emberCanvas.getContext("2d");
+let embers = [];
+function resizeEmberCanvas() { emberCanvas.width = window.innerWidth; emberCanvas.height = window.innerHeight; }
+resizeEmberCanvas(); addEventListener("resize", resizeEmberCanvas);
+function createEmber() { return { x: Math.random() * emberCanvas.width, y: emberCanvas.height + 10, size: Math.random() * 3.5 + 1, speedY: Math.random() * 2 + 1, speedX: (Math.random() - 0.5) * 1.2, opacity: Math.random() * 0.8 + 0.2, hue: Math.floor(Math.random() * 40) }; }
+for (let i = 0; i < 70; i++) { const e = createEmber(); e.y = Math.random() * emberCanvas.height; embers.push(e); }
+function animateEmbers() {
+  emberCtx.clearRect(0, 0, emberCanvas.width, emberCanvas.height);
+  embers.forEach((e) => { e.y -= e.speedY; e.x += e.speedX; e.opacity -= 0.002; if (e.y < -10 || e.opacity <= 0) { Object.assign(e, createEmber()); } emberCtx.fillStyle = `hsla(${e.hue}, 100%, 60%, ${e.opacity})`; emberCtx.beginPath(); emberCtx.arc(e.x, e.y, e.size, 0, Math.PI * 2); emberCtx.fill(); });
+  requestAnimationFrame(animateEmbers);
+}
+animateEmbers();
+
+
+const starCanvas = document.getElementById("starCanvas");
+const starCtx = starCanvas.getContext("2d");
+let stars = []; let starRaf = null;
+function resizeStarCanvas() { starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight; }
+resizeStarCanvas(); addEventListener("resize", resizeStarCanvas);
+function draw4PointStar(ctx, x, y, size, color, alpha) { ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(x, y - size); ctx.quadraticCurveTo(x, y, x + size, y); ctx.quadraticCurveTo(x, y, x, y + size); ctx.quadraticCurveTo(x, y, x - size, y); ctx.quadraticCurveTo(x, y, x, y - size); ctx.fill(); ctx.restore(); }
+function triggerBlueStars() { stars = []; for (let i = 0; i < 10; i++) { stars.push({ x: Math.random() * (window.innerWidth * 0.8) + window.innerWidth * 0.1, y: Math.random() * (window.innerHeight * 0.6) + window.innerHeight * 0.2, size: Math.random() * 35 + 20, alpha: 1, scaleSpeed: Math.random() * 0.03 + 0.02 }); } if (!starRaf) animateStars(); }
+function animateStars() { starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height); stars = stars.filter(s => s.alpha > 0.02); stars.forEach(s => { s.alpha -= 0.02; s.size += 0.8; draw4PointStar(starCtx, s.x, s.y, s.size, "#00f0ff", s.alpha); }); if (stars.length > 0) { starRaf = requestAnimationFrame(animateStars); } else { starRaf = null; starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height); } }
+
+
+showSlide(0);
+</script>
+</body>
+</html>
