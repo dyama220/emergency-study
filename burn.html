@@ -838,7 +838,8 @@ const IMGS = {
   i9473: "IMG_9489.jpeg",
   i9474: "IMG_9490.jpeg",
   i9475: "IMG_9491.jpeg",
-  i9476: "IMG_9492.jpeg"
+  i9476: "IMG_9492.jpeg",
+  i9505: "IMG_9505.jpeg"
 };
 
 
@@ -859,7 +860,7 @@ const SLIDES = [
   { ch: 3, icon: "scissors", t: "衣服の焼け焦げサイン", km: "焼け落ちた衣服や皮膚への固着部分は無理に除去しない！", c: `<ul><li>無理な脱衣は創面を広げ皮膚剥離を悪化させます。周囲のみカットします。</li></ul>` },
   { ch: 3, quiz: true, icon: "badge", t: "第3章 確認クイズ：深達度の識別", q: "熱傷深達度の評価で「現場活動において誤っている対応」はどれですか？", o: ["Ⅰ度熱傷（日焼け様の発赤）はTBSAの計算から除外する", "痛みを感じていない部位は軽症と判断し、観察を後回しにする", "皮膚に固着した衣類は剥がさず、周囲をハサミで切り取る"], a: 1, e: "痛みが消失している部位は痛覚神経まで破壊された「Ⅲ度熱傷」の可能性が高く、非常に重症です！痛がり方だけで軽症と判断してはいけません。", h: "痛覚神経が死滅すると痛みが無くなります。「痛くない＝軽症」ではありません！" },
   { ch: 4, icon: "calc", t: "熱傷面積（TBSA）算出の重要性", km: "正確な受傷面積（TBSA）把握 → 介入・医療機関選定の根拠", c: `<ul><li><span class="hl">TBSA ＝ Ⅰ度を除いた「Ⅱ度 ＋ Ⅲ度」の合計面積</span>で算出。</li><li>緊急度・重症度判定およびショック輸液要請の決定打となります。</li></ul>` },
-  { ch: 4, cutinQ: true, icon: "grid", t: "広範囲の評価「9の法則」", km: "成人：頭部9%・上肢各9%・体幹前18%・体幹後18%・下肢各18%・会陰1%", c: `<ul><li>広範囲熱傷の場合、部位ごとの9%単位で迅速に暗算評価します。</li></ul>` },
+  { img: "i9505", imgPos: "body",ch: 4, cutinQ: true, icon: "grid", t: "広範囲の評価「9の法則」", km: "成人：頭部9%・上肢各9%・体幹前18%・体幹後18%・下肢各18%・会陰1%", c: `<ul><li>広範囲熱傷の場合、部位ごとの9%単位で迅速に暗算評価します。</li></ul>` },
   { ch: 4, icon: "child", t: "小児の評価「5の法則」", km: "小児は頭部が大きく下肢が小さいため、9の法則ではなく「5の法則」で評価する", c: `<ul><li>成人の9の法則をそのまま使うと誤差が大きくなるため、小児は<span class="hl">5の法則</span>を用います。</li></ul><div class="depth-grid"><div class="depth-card d1"><h4>頭部</h4><p><b>20%</b></p></div><div class="depth-card d2s"><h4>体幹</h4><p>前面 <b>20%</b> ／ 後面 <b>20%</b></p></div><div class="depth-card d2d"><h4>上肢</h4><p>各 <b>10%</b></p></div><div class="depth-card d3"><h4>下肢</h4><p>各 <b>10%</b></p></div></div><p style="margin:10px 0 0;">合計 100%（20＋40＋20＋20）</p>` },
   { ch: 4, icon: "hand", t: "局所の評価「手掌法」", km: "「傷病者本人の手指を含めた手のひら全体」＝ 1%として計算", c: `<ul><li>隊員のの手ではなく、<span class="hl">「傷病者本人の手のひらサイズ」</span>を1%基準とします。</li></ul>` },
   { ch: 4, gimmick: "mannequin", icon: "calc", t: "第4章 ギミック：3Dマネキン TBSA評価実技トレーニング", km: "3Dマネキンにランダム出現する熱傷深達度（1度・2度・3度）を見極め、正しいTBSA%を算出せよ！", c: `<div class="tool-box"><p style="margin:0 0 8px; font-weight:bold; color:var(--accent-cyan);">※【1度熱傷はTBSA除外・2度と3度は計算対象】スワイプで回転して前面・背面を確認してください（正解しないと次に進めません）</p><div class="mode-row"><button class="tool-btn active" id="modeAdultBtn" onclick="setBurnMode('adult')">成人モード（9の法則）</button><button class="tool-btn" id="modeChildBtn" onclick="setBurnMode('child')">小児モード（5の法則）</button></div><div class="burn3d-wrap"><div id="burn3dBox" class="burn3d-box"></div><div class="burn3d-hint">スワイプで回転 ↔</div></div><div class="legend-row"><div class="legend-item"><div class="legend-color" style="background:#f5d0b4;"></div>正常</div><div class="legend-item"><div class="legend-color" style="background:#ff99bb;"></div>1度（TBSA<b>除外</b>）</div><div class="legend-item"><div class="legend-color" style="background:#ff1e3c; border:1px solid cyan; border-radius:50%;"></div>2度（水疱）</div><div class="legend-item"><div class="legend-color" style="background:#222; border:1px solid #fff;"></div>3度</div></div><button class="tool-btn active" onclick="generateRandomBurnScenario()">症例をランダム生成</button><div class="form-group" style="margin-top:14px;"><label>この症例の正しいTBSA (全身体表面積 %) を入力:</label><div style="display:flex; gap:10px;"><input type="number" id="userTbsaInput" class="form-control" step="0.5" inputmode="decimal" placeholder="数字のみ入力 (例: 27)" style="font-size:18px; font-weight:bold;"><button class="tool-btn active" style="min-width:120px; font-size:17px;" onclick="verifyTbsaAnswer()">解答判定</button></div></div><div class="tool-res" id="tbsaEvalResult">「症例をランダム生成」または数値を入力して判定してください</div></div>` },
