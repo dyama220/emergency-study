@@ -965,7 +965,7 @@ SLIDES.forEach((s, idx) => {
 
 
   let bodyHtml = "";
-　　if (s.isTitle) {
+  if (s.isTitle) {
     bodyHtml = `<div class="title-card"><div class="card-icon" style="width:90px; height:90px; margin-bottom:20px;">${SVG_ICONS.burn}</div><h1 class="hl">${s.t}</h1><p>${s.sub}</p><button class="start-btn" onclick="showSlide(1)">${s.btn}</button></div>`;
   } else if (s.quiz) {
     bodyHtml = `<div class="card-header"><div class="card-icon">${SVG_ICONS[s.icon] || SVG_ICONS.badge}</div><div class="card-title-group"><span class="chapter-badge">Chapter ${s.ch} - クイズ</span><h2>${s.t}</h2></div></div><div class="card-content"><p style="font-weight:bold; margin-bottom:16px;">${s.q}</p><div>${s.o.map((opt, oIdx) => `<button class="opt" onclick="checkQuiz(${idx}, ${oIdx})">${"ABC"[oIdx]}. ${opt}</button>`).join("")}</div></div>`;
