@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>アルコール性肝障害｜救急隊員向け研修</title>
+<style>
+@property --a{syntax:'<angle>';inherits:false;initial-value:0deg}
+:root{--cy:#00c8ff;--gr:#00d68f;--pu:#9b30ff;--ink:#1d2340;--fs:16px;--pad:14px}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff;color:var(--ink);font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;font-size:var(--fs);line-height:1.7;-webkit-text-size-adjust:100%}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#app{position:relative;z-index:1;display:flex;flex-direction:column;height:100dvh}
+button{font:inherit;cursor:pointer;border:0}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--cy);outline-offset:2px}
+header{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 8px) var(--pad) 6px}
+.ib{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.7);backdrop-filter:blur(8px);box-shadow:0 0 0 1.5px var(--cy),0 0 10px rgba(0,200,255,.35);font-size:20px;color:var(--ink)}
+#chn{flex:1;text-align:center;font-weight:700;font-size:.85em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cnt{font-size:.85em;font-weight:700;min-width:64px;text-align:right}
+#stage{flex:1;min-height:0;overflow:auto;padding:6px var(--pad);display:flex;flex-direction:column}
+.card{position:relative;margin:auto;width:100%;max-width:760px;padding:calc(var(--pad) + 8px);background:rgba(255,255,255,.66);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:22px;box-shadow:0 8px 30px rgba(120,60,255,.15);animation:up .5s both}
+.card::before,.zb::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:3px;background:conic-gradient(from var(--a),#00e5ff,#a03cff,#00e676,#00e5ff);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:spin 4s linear infinite;pointer-events:none}
+@keyframes spin{to{--a:360deg}}
+@keyframes up{from{opacity:0;transform:translateY(14px)}}
+@keyframes flow{to{background-position:300% 0}}
+.em,.num{background:linear-gradient(90deg,#9b30ff,#00c46a,#0a84ff,#9b30ff);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;font-weight:800;animation:flow 5s linear infinite}
+.num{background-image:linear-gradient(90deg,#ff3fa4,#9b30ff,#ff3fa4);font-size:1.4em;margin-right:10px}
+.ic{font-size:2.2em;line-height:1}
+.ttl{margin:.2em 0 .3em;font-size:1.45em;line-height:1.35}
+.key{margin:0 0 .8em;padding:.5em .8em;border-left:4px solid var(--pu);background:rgba(155,48,255,.07);border-radius:0 10px 10px 0;font-weight:700}
+ul{margin:.4em 0;padding-left:1.3em}li{margin:.25em 0}
+.t-title,.t-t4{text-align:center;padding:36px var(--pad)}
+.t-title .ic,.t-t4 .ic{font-size:4em}.t-title .ttl,.t-t4 .ttl{font-size:1.9em}
+.t-title .key,.t-t4 .key{border:0;background:none;font-size:1.05em}
+.t-t2 .cols{display:grid;gap:14px}
+.imgbox{margin:.6em 0;display:flex;align-items:center;justify-content:center;border-radius:14px;overflow:hidden;background:rgba(0,200,255,.06);min-height:120px}
+.imgbox img{max-width:100%;max-height:300px;cursor:zoom-in;display:block}
+.ph{font-size:4.5em;opacity:.8}
+.flow{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:.6em 0}
+.box{flex:1;padding:.7em .8em;border-radius:14px;background:rgba(255,255,255,.8);box-shadow:0 0 0 2px var(--cy),0 0 12px rgba(0,200,255,.3);text-align:center}
+.box:nth-of-type(even){box-shadow:0 0 0 2px var(--gr),0 0 12px rgba(0,214,143,.3)}
+.box b{display:block}.box small{display:block;line-height:1.5}
+.arw{align-self:center;color:var(--pu);font-size:1.3em;transform:rotate(90deg);text-shadow:0 0 8px var(--pu)}
+.q{font-weight:700;margin:.4em 0 .8em}
+.opt{display:block;width:100%;margin:8px 0;padding:.8em 1em;text-align:left;border-radius:14px;background:rgba(255,255,255,.85);box-shadow:0 0 0 2px var(--cy);color:var(--ink)}
+.opt.bad{box-shadow:0 0 0 2px #ff3fa4;animation:sh .4s}.opt.good{box-shadow:0 0 0 3px var(--gr),0 0 16px var(--gr)}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fi{width:7.5em;margin:0 3px;padding:.2em .4em;font:inherit;border:0;border-bottom:3px solid var(--pu);background:rgba(155,48,255,.08);border-radius:6px;text-align:center;color:var(--ink)}
+textarea{width:100%;min-height:6em;padding:.6em;font:inherit;border:2px solid var(--cy);border-radius:12px;background:rgba(255,255,255,.9);color:var(--ink)}
+.act{margin-top:10px;padding:.7em 1.6em;border-radius:999px;color:#fff;font-weight:700}
+.hint,.exp{margin-top:.8em;padding:.7em .9em;border-radius:12px;font-size:.95em}
+.hint{background:rgba(255,160,0,.12);border:1px solid #ffa000}
+.exp{background:rgba(0,214,143,.1);border:1px solid var(--gr)}
+.note{font-size:.8em;opacity:.7}
+.grad,.act,.nb{background:linear-gradient(90deg,#9b30ff,#9acd32,#9b30ff);background-size:300% 100%;animation:flow 6s linear infinite}
+#bar{height:5px;background:rgba(155,48,255,.15)}#bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cy),var(--pu),var(--gr));box-shadow:0 0 8px var(--cy);transition:width .4s}
+footer{display:flex;gap:10px;padding:8px var(--pad) calc(env(safe-area-inset-bottom) + 10px)}
+.nb{flex:1;height:50px;border-radius:14px;color:#fff;font-weight:800;font-size:1.05em;text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.nb:disabled,.act:disabled{opacity:.35;cursor:not-allowed;animation:none}
+#toc{position:fixed;z-index:40;top:0;left:0;bottom:0;width:min(84vw,340px);padding:calc(env(safe-area-inset-top) + 60px) 14px 20px;background:rgba(255,255,255,.55);backdrop-filter:blur(10px);display:none;flex-direction:column;gap:10px;overflow:auto}
+#toc.on{display:flex}
+.ch{display:flex;align-items:center;padding:.7em .9em;border-radius:14px;background:rgba(255,255,255,.9);box-shadow:0 0 0 2px var(--pu),0 0 12px rgba(155,48,255,.35);color:var(--ink);text-align:left;animation:sl .45s both}
+.ch:disabled{opacity:.45}
+@keyframes sl{from{transform:translateX(-120%);opacity:0}}
+.ov{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,12,.9);color:#fff;text-align:center;overflow:hidden;animation:fi .25s}
+@keyframes fi{from{opacity:0}}
+.neon{font-size:2.4em;font-weight:900;color:#f1dcff;text-shadow:0 0 6px #fff,0 0 14px #b040ff,0 0 32px #9b30ff,0 0 60px #9b30ff}
+.neon small{display:block;font-size:.5em;margin-top:.3em}
+.las{position:absolute;height:2px;width:30vw;left:-30vw;background:linear-gradient(90deg,transparent,#39ff88,#fff);box-shadow:0 0 8px #39ff88;animation:ls linear infinite}
+@keyframes ls{to{transform:translateX(160vw)}}
+#cut{z-index:60;cursor:pointer}
+#cut .neon.g{color:#d9fffb;text-shadow:0 0 8px #fff,0 0 18px #00e5ff,0 0 40px #00e5ff}
+#cut .neon.o{color:#ffe0f0;text-shadow:0 0 8px #fff,0 0 18px #ff3fa4,0 0 40px #ff3fa4}
+#cut .neon.v{color:#dcffe8;text-shadow:0 0 8px #fff,0 0 18px #39ff88,0 0 40px #39ff88}
+.star{position:absolute;color:#3aa0ff;text-shadow:0 0 10px #3aa0ff;animation:st 1.6s ease-out both}
+@keyframes st{from{transform:translate(0,0) scale(.3);opacity:1}to{transform:translate(var(--x),var(--y)) scale(1.4) rotate(200deg);opacity:0}}
+.flash{position:fixed;inset:0;z-index:70;pointer-events:none;animation:fl .7s}
+@keyframes fl{0%{background:rgba(255,120,0,0)}30%{background:rgba(255,120,0,.4);box-shadow:inset 0 0 120px 40px #ff8a00}100%{background:rgba(255,120,0,0)}}
+.zb{position:relative;padding:12px;border-radius:18px;background:#000;max-width:94vw}
+.zb img{display:block;max-width:88vw;max-height:80dvh;border-radius:10px}
+.x{position:absolute;top:-14px;right:-14px;z-index:2;width:40px;height:40px;border-radius:50%;background:#fff;color:#000;font-size:22px}
+@media (min-width:600px){.t-t2 .cols{grid-template-columns:1fr 1fr;align-items:center}.flow{flex-direction:row;align-items:stretch}.arw{transform:none;align-self:center}}
+@media (max-width:600px){:root{--fs:15px;--pad:10px}.card{padding:16px}.ttl{font-size:1.3em}}
+@media (max-height:500px) and (orientation:landscape){:root{--fs:13px;--pad:8px}header{padding-top:4px}.ib{width:34px;height:34px}.nb{height:40px}.t-title .ic,.t-t4 .ic{font-size:2.4em}.t-title,.t-t4{padding:14px}}
+@media (min-width:900px){:root{--fs:19px;--pad:24px}.card{max-width:980px;padding:32px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important}}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div id="app">
+<header>
+<button class="ib" id="tb" aria-label="章目次">☰</button>
+<div id="chn"></div>
+<div id="cnt"></div>
+<button class="ib" id="fs" aria-label="全画面">⛶</button>
+</header>
+<main id="stage"></main>
+<div id="bar" role="progressbar" aria-label="進捗"><i></i></div>
+<footer>
+<button class="nb" id="pv">◀ 前へ</button>
+<button class="nb" id="nx">次へ ▶</button>
+</footer>
+</div>
+<nav id="toc" aria-label="章目次"></nav>
+
+<script>
+"use strict";
+/* ===== データ ===== */
+// 画像：リポジトリ直下に置いたファイル名を登録（無い場合は自動で非表示／アイコン表示）
+const IMGS={mech:'liver-mechanism.png',gluco:'gluconeogenesis.png',varix:'varices.png'};
+const CH=['','肝臓のしくみと原因','症状と出血','低血糖','合併症とまとめ'];
+const S=[
+{t:'title',ch:0,ic:'🚑',title:'アルコール性肝障害',key:'救急隊員向け研修スライド｜全{N}枚・全{C}章'},
+// 第1章
+{t:'t1',ch:1,ic:'🧪',title:'肝臓のはたらき',key:'肝臓は **体の化学工場**。止血や血糖維持にも欠かせない臓器です。',body:['アルコールや薬などの有害物を分解する','栄養を蓄え、血液の成分を作る','出血を止める**凝固因子**を作る','空腹時にブドウ糖を作り、**血糖を保つ**','胆汁を作り、脂肪の消化を助ける','再生力はあるが、傷と修復をくり返すと「線維」（傷跡）が増えて硬くなる']},
+{t:'t2',ch:1,ic:'⚠️',title:'なぜアルコールで傷つくのか',key:'分解の途中でできる **アセトアルデヒド** が肝細胞を傷つけます。',body:['アルコールは腸から吸収され、多くは肝臓で分解される','有害なアセトアルデヒドが酸化ストレスと炎症を起こす','飲酒量が多く期間が長いほど進みやすい','リスク：女性、高齢、肥満、糖尿病、B型・C型肝炎、体質'],img:'mech'},
+{t:'t3',ch:1,ic:'📈',title:'典型的な進み方',key:'傷が積み重なり、肝臓は少しずつ硬くなります。',flow:[['脂肪肝','脂肪がたまる。症状は乏しい'],['アルコール性肝炎','強い炎症。発熱・黄疸など'],['肝線維症','傷跡が増える'],['肝硬変','硬く小さくなる']],note:'段階を飛ばしたり、複数の状態が同時にあることもあります。'},
+{t:'q3',ch:1,ic:'❓',title:'確認クイズ①',q:'次のうち、肝臓のはたらき「ではない」ものはどれ？',opts:['凝固因子（血を固める成分）を作る','空腹時にブドウ糖を作る','全身へ酸素を運ぶ'],ans:2,hint:'酸素を運ぶのは赤血球です。肝臓の仕事を思い出してみましょう。',exp:'肝臓は凝固因子の産生、糖新生（ブドウ糖づくり）、解毒などを担います。酸素の運搬は赤血球の役割です。'},
+// 第2章
+{t:'t1',ch:2,ic:'🟡',title:'主な症状',key:'初期は症状が少ない。進むと **黄疸・腹水・意識の変化** が現れます。',body:['脂肪肝：ほとんど無症状、疲れやすい、お腹の張り','アルコール性肝炎：食欲低下、吐き気、腹痛、発熱、**黄疸**','肝硬変：黄疸、むくみ、**腹水**、かゆみ、手のひらの赤み、出血しやすい、意識の混乱','腹水・むくみは、アルブミン低下・門脈圧の上昇・塩分と水分の貯留が重なって起こる']},
+{t:'t3',ch:2,ic:'🩸',title:'出血しやすくなる仕組み',key:'**凝固因子の不足** と **血小板の減少** が重なります。',flow:[['肝機能の低下','凝固因子が作れない'],['門脈圧の上昇','肝臓への血流が滞る'],['脾臓が腫れる','血小板が減る'],['出血しやすい','鼻血・あざ・消化管出血']],note:'肝硬変では、検査値（PT-INRなど）だけでは出血のしやすさを正確に測れません。'},
+{t:'t1',ch:2,ic:'🚨',title:'食道・胃静脈瘤の破裂',key:'肝硬変で最も危険な出血のひとつ。**大量吐血** につながります。',body:['血流が滞り、代わりの血管に圧がかかってこぶ状に膨らむ','破れると大量に出血することがある','現場の着眼点：吐血、黒い便（タール便）、顔色・脈拍・血圧の変化','症状のない血液検査異常だけで凝固因子を補充することは通常しない（出血時・処置前は医師が判断）'],img:'varix',pos:'body'},
+{t:'fill',ch:2,ic:'✏️',title:'虫食いクイズ①',text:'肝臓は出血を止めるための{0}を作る。肝硬変で肝臓への血流が滞ると、{1}の圧が上がり、食道・胃の{2}が破裂して大量出血することがある。',ans:['凝固因子','門脈','静脈瘤'],exp:'肝機能が落ちて凝固因子が減り、門脈圧が上がって静脈瘤ができる。この二重の危険が出血の背景です。'},
+// 第3章
+{t:'t2',ch:3,ic:'🍬',title:'糖新生の低下と低血糖',key:'アルコールは肝臓の **糖新生** を抑えます。',body:['糖新生＝空腹時に肝臓がアミノ酸や乳酸からブドウ糖を作る仕組み','アルコールは糖新生を抑え、貯蔵糖（グリコーゲン）も減らす','症状：冷や汗、震え、強い空腹感、動悸、頭痛','悪化すると意識もうろう、けいれん、昏睡'],img:'gluco'},
+{t:'t1',ch:3,ic:'🔎',title:'現場の鑑別：血糖を測る',key:'意識障害をみたら **血糖測定**。肝性脳症との区別に必要です。',body:['食事をとらずに大量飲酒した後は、**肝硬変がなくても** 低血糖が起こる','低栄養の人ほど起こりやすい','重症のアルコール性肝炎・急性肝不全、進行した肝硬変でも起こる','肝性脳症（眠気・会話の混乱・性格変化）と症状が似るため、血糖値で区別する']},
+{t:'free',ch:3,ic:'📝',title:'自由記載クイズ',q:'大量飲酒後に意識がもうろうとしている人を診ています。現場で最初に確認すべきことと、その理由を書いてください。',ref:'血糖を測定する。低血糖か肝性脳症かを区別するため',exp:'模範解答：血糖を測定する。低血糖か肝性脳症かを区別するため。低血糖は意識障害やけいれんの原因になり、早期の確認が重要です。'},
+// 第4章
+{t:'t1',ch:4,ic:'⚠️',title:'起こりうる合併症',key:'肝硬変・肝不全まで進むと、命に関わる合併症が重なります。',body:['**出血傾向・消化管出血**','**低血糖**（意識障害につながる）','**腹水**（腹部膨満、息苦しさ）','**肝性脳症**（眠気、混乱、昏睡）','**腎不全**（肝腎症候群など）','**肝がん**（肝硬変は重要な危険因子。飲酒自体も危険因子）','重症アルコール性肝炎（まれに急激に悪化）']},
+{t:'t1',ch:4,ic:'💡',title:'覚えておきたいこと',key:'早く止めるほど改善の見込みがあります。**断酒はいつからでも意味があります。**',body:['早期の脂肪肝は、断酒または大幅な減酒で改善することがある','肝硬変は元に戻りにくいが、断酒で状態が安定し予後がよくなることもある','「休肝日」だけでは安全とは言えない（総量・頻度・期間・体質が関係）','継続飲酒・黄疸・腹部膨満・むくみ・黒い便・意識の乱れは受診の目安']},
+{t:'q3',ch:4,ic:'❓',title:'確認クイズ②',q:'低血糖について、正しいものはどれ？',opts:['肝硬変がある人にしか起こらない','食事をとらず大量飲酒した後は、肝硬変がなくても起こる','飲酒中は糖新生が高まるので起こらない'],ans:1,hint:'アルコールは糖新生を「抑える」はたらきがあります。',exp:'アルコールは糖新生を抑え、貯蔵糖も減らします。空腹での大量飲酒後は肝硬変がなくても低血糖になり得ます。'},
+{t:'t4',ch:4,ic:'🎓',title:'まとめ',key:'傷つける → 出血・低血糖 → 命に関わる。**早めの受診と断酒** が最も大切です。'}
+];
+const NC=CH.length-1;
+
+/* ===== ユーティリティ（innerHTML不使用） ===== */
+const $=(s,r=document)=>r.querySelector(s);
+const el=(tg,cl,tx)=>{const e=document.createElement(tg);if(cl)e.className=cl;if(tx!=null)e.textContent=tx;return e};
+const rich=(p,str)=>{str.split(/(\*\*[^*]+\*\*)/).forEach(x=>{if(x.startsWith('**'))p.appendChild(el('span','em',x.slice(2,-2)));else if(x)p.appendChild(document.createTextNode(x))});return p};
+const norm=t=>t.normalize('NFKC').toLowerCase().replace(/[\s、。，．,.・「」]/g,'');
+function lev(a,b){const m=a.length,n=b.length;if(!m||!n)return 0;let p=Array.from({length:n+1},(_,j)=>j);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return 1-p[n]/Math.max(m,n)}
+function dice(a,b){if(a===b)return 1;const g=t=>{const r=[];for(let i=0;i<t.length-1;i++)r.push(t.substr(i,2));return r};const x=g(a),y=g(b);if(!x.length||!y.length)return lev(a,b);let h=0;x.forEach(k=>{const j=y.indexOf(k);if(j>=0){h++;y.splice(j,1)}});return 2*h/(x.length+g(b).length)}
+const isQ=s=>s.t==='q3'||s.t==='fill'||s.t==='free';
+
+/* ===== 状態 ===== */
+let i=0,busy=false;const done={};
+const stage=$('#stage'),nx=$('#nx'),pv=$('#pv');
+const allowed=n=>{for(let k=0;k<n;k++)if(isQ(S[k])&&!done[k])return false;return true};
+
+/* ===== 画像 ===== */
+function imgBox(s){
+  const nm=IMGS[s.img];const box=el('div','imgbox');
+  if(!nm||!/^[\w.-]+\.(png|jpe?g|webp|gif|svg)$/i.test(nm)){return s.t==='t2'?(box.appendChild(el('div','ph',s.ic)),box):null}
+  const im=new Image();im.alt=s.title+'の図';im.decoding='async';
+  im.onerror=()=>{if(s.t==='t2'){box.replaceChildren(el('div','ph',s.ic))}else box.remove()};
+  im.onclick=()=>zoom(nm,im.alt);im.src=nm;box.appendChild(im);return box;
+}
+function zoom(src,alt){
+  const o=el('div','ov');o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');
+  const zb=el('div','zb');const im=new Image();im.src=src;im.alt=alt;
+  const x=el('button','x','×');x.setAttribute('aria-label','閉じる');
+  zb.append(x,im);o.appendChild(zb);document.body.appendChild(o);
+  const close=()=>o.remove();x.onclick=close;o.onclick=e=>{if(e.target===o)close()};x.focus();
+}
+
+/* ===== 描画 ===== */
+function render(){
+  const s=S[i],c=el('section','card t-'+s.t);
+  c.appendChild(el('div','ic',s.ic));
+  c.appendChild(el('h1','ttl',s.title));
+  const bodyUl=()=>{const u=el('ul');s.body.forEach(b=>u.appendChild(rich(el('li'),b)));return u};
+  const key=()=>s.key&&c.appendChild(rich(el('p','key'),s.key.replace('{N}',S.length).replace('{C}',NC)));
+  if(s.t==='title'||s.t==='t4')key();
+  else if(s.t==='t1'){key();if(s.img&&s.pos==='key'){const b=imgBox(s);b&&c.appendChild(b)}c.appendChild(bodyUl());if(s.img&&s.pos==='body'){const b=imgBox(s);b&&c.appendChild(b)}}
+  else if(s.t==='t2'){key();const g=el('div','cols');const l=el('div');l.appendChild(bodyUl());g.append(l,imgBox(s));c.appendChild(g)}
+  else if(s.t==='t3'){key();const f=el('div','flow');s.flow.forEach((p,k)=>{if(k)f.appendChild(el('div','arw','➜'));const b=el('div','box');b.append(el('b',null,p[0]),el('small',null,p[1]));f.appendChild(b)});c.appendChild(f);if(s.note)c.appendChild(el('p','note',s.note))}
+  else if(s.t==='q3')q3(c,s);else if(s.t==='fill')fill(c,s);else free(c,s);
+  stage.replaceChildren(c);stage.scrollTop=0;
+  $('#chn').textContent=s.ch?'第'+s.ch+'章 '+CH[s.ch]:'タイトル';
+  $('#cnt').textContent=(i+1)+' / '+S.length;
+  $('#bar i').style.width=(i/(S.length-1)*100)+'%';
+  $('#bar').setAttribute('aria-valuenow',Math.round(i/(S.length-1)*100));
+  nav();
+}
+function nav(){pv.disabled=i===0;nx.disabled=i>=S.length-1||!allowed(i+1)}
+
+/* ===== クイズ ===== */
+function finish(c,label,cls,lead,detail,stars){
+  done[i]=true;nav();cut(label,cls,stars);
+  const e=el('div','exp');e.append(el('b',null,lead),document.createElement('br'),document.createTextNode(detail));c.appendChild(e);
+}
+function q3(c,s){
+  c.appendChild(el('p','q',s.q));const bs=[];let hint=null;
+  s.opts.forEach((o,k)=>{const b=el('button','opt',(k+1)+'. '+o);bs.push(b);b.onclick=()=>{
+    if(done[i])return;
+    if(k===s.ans){b.classList.add('good');bs.forEach(x=>x.disabled=true);hint&&hint.remove();finish(c,'正解！','g','解説',s.exp,true)}
+    else{b.classList.add('bad');b.disabled=true;if(!hint){hint=el('div','hint');c.appendChild(hint)}hint.textContent='ヒント：'+s.hint}
+  };c.appendChild(b)});
+}
+function fill(c,s){
+  const p=el('p','q');const ins=[];
+  s.text.split(/\{(\d)\}/).forEach((x,k)=>{if(k%2){const t=document.createElement('input');t.className='fi';t.maxLength=20;t.autocomplete='off';t.setAttribute('aria-label','空欄'+(+x+1));t.placeholder='（'+(+x+1)+'）';ins.push(t);p.appendChild(t)}else p.appendChild(document.createTextNode(x))});
+  const b=el('button','act','答え合わせ');
+  b.onclick=()=>{
+    if(done[i])return;
+    const sc=ins.map((t,k)=>norm(t.value)===norm(s.ans[k])?1:lev(norm(t.value),norm(s.ans[k])));
+    const all=sc.every(v=>v===1),avg=sc.reduce((a,v)=>a+v,0)/sc.length;
+    ins.forEach(t=>t.disabled=true);b.remove();
+    const ans='正解：'+s.ans.join(' / ')+'。';
+    if(all)finish(c,'正解！','g','全問正解です。',ans+s.exp,true);
+    else if(avg>=0.5)finish(c,'ほぼ正解','v','惜しい！ほぼ正解です。',ans+s.exp);
+    else finish(c,'残念！','o','残念…もう一度確認しましょう。',ans+s.exp);
+  };
+  c.append(p,b);
+}
+function free(c,s){
+  c.appendChild(el('p','q',s.q));
+  const t=document.createElement('textarea');t.maxLength=200;t.setAttribute('aria-label','回答');c.appendChild(t);
+  c.appendChild(el('p','note','※自動判定は文字の一致度で行います。'));
+  const b=el('button','act','回答する');
+  b.onclick=()=>{
+    if(done[i]||!t.value.trim())return;
+    const r=dice(norm(t.value),norm(s.ref));t.disabled=true;b.remove();
+    if(r>=0.8)finish(c,'正解！','g','正解です。要点をしっかり押さえています。',s.exp,true);
+    else if(r>=0.4)finish(c,'まあ正解！','v','まあ正解です。要点の一部が合っています。',s.exp);
+    else finish(c,'残念！','o','残念…要点が不足しています。',s.exp);
+  };
+  c.appendChild(b);
+}
+function cut(label,cls,stars){
+  const o=el('div','ov');o.id='cut';o.setAttribute('role','alert');
+  if(stars)for(let k=0;k<22;k++){const s=el('span','star','★');const a=Math.random()*6.28,d=80+Math.random()*180;s.style.setProperty('--x',Math.cos(a)*d+'px');s.style.setProperty('--y',Math.sin(a)*d+'px');s.style.fontSize=(14+Math.random()*22)+'px';o.appendChild(s)}
+  o.appendChild(el('div','neon '+cls,label));document.body.appendChild(o);
+  const close=()=>{clearTimeout(tm);o.remove()};const tm=setTimeout(close,1900);o.onclick=close;
+}
+
+/* ===== 遷移・章目次 ===== */
+function go(n){
+  if(busy||n<0||n>=S.length||!allowed(n))return;
+  const nc=S[n].ch;
+  if(nc&&nc!==S[i].ch){
+    busy=true;const o=el('div','ov');
+    for(let k=0;k<36;k++){const l=el('i','las');l.style.top=(k%2?55+Math.random()*43:Math.random()*43)+'%';l.style.width=(18+Math.random()*30)+'vw';l.style.left='-50vw';l.style.animationDuration=(.6+Math.random()*.7)+'s';l.style.animationDelay=(Math.random()*.8)+'s';o.appendChild(l)}
+    const t=el('div','neon','Chapter 0'+nc);t.appendChild(el('small',null,CH[nc]));o.appendChild(t);document.body.appendChild(o);
+    setTimeout(()=>{o.remove();i=n;render();busy=false},1500);
+  }else{i=n;render()}
+}
+const toc=$('#toc');
+function openToc(){
+  toc.replaceChildren();
+  for(let c=1;c<=NC;c++){
+    const first=S.findIndex(s=>s.ch===c),b=el('button','ch');
+    b.append(el('span','num','0'+c),document.createTextNode(CH[c]+(allowed(first)?'':' 🔒')));
+    b.disabled=!allowed(first);b.style.animationDelay=(c*.09)+'s';
+    b.onclick=()=>{toc.classList.remove('on');const f=el('div','flash');document.body.appendChild(f);setTimeout(()=>f.remove(),750);setTimeout(()=>go(first),420)};
+    toc.appendChild(b);
+  }
+  toc.classList.add('on');
+}
+$('#tb').onclick=()=>toc.classList.contains('on')?toc.classList.remove('on'):openToc();
+stage.addEventListener('pointerdown',()=>toc.classList.remove('on'));
+nx.onclick=()=>go(i+1);pv.onclick=()=>go(i-1);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){toc.classList.remove('on');document.querySelectorAll('.ov').forEach(o=>o.remove());return}
+  if(e.target.matches('input,textarea'))return;
+  if(e.key==='ArrowRight')go(i+1);if(e.key==='ArrowLeft')go(i-1);
+});
+
+/* ===== 全画面 ===== */
+const de=document.documentElement,fsb=$('#fs');
+if(!(de.requestFullscreen||de.webkitRequestFullscreen))fsb.hidden=true;
+fsb.onclick=()=>{const on=document.fullscreenElement||document.webkitFullscreenElement;
+  if(on)(document.exitFullscreen||document.webkitExitFullscreen).call(document);else(de.requestFullscreen||de.webkitRequestFullscreen).call(de)};
+
+/* ===== 流星背景 ===== */
+const cv=$('#bg'),cx=cv.getContext('2d'),cols=['0,200,255','0,214,143','155,48,255'];let W,H,M=[];
+const rs=()=>{W=cv.width=innerWidth;H=cv.height=innerHeight};addEventListener('resize',rs);rs();
+const mk=(init)=>({x:Math.random()*W*1.3,y:init?Math.random()*H:-40,v:2.5+Math.random()*3.5,l:50+Math.random()*90,c:cols[Math.random()*3|0],w:1+Math.random()*1.4});
+for(let k=0;k<32;k++)M.push(mk(true));
+function tick(){
+  if(!document.hidden){
+    cx.clearRect(0,0,W,H);
+    M.forEach((m,k)=>{
+      m.x-=m.v*.6;m.y+=m.v*.8;
+      const tx=m.x+m.l*.6,ty=m.y-m.l*.8,g=cx.createLinearGradient(tx,ty,m.x,m.y);
+      g.addColorStop(0,'rgba('+m.c+',0)');g.addColorStop(1,'rgba('+m.c+',.75)');
+      cx.strokeStyle=g;cx.lineWidth=m.w;cx.beginPath();cx.moveTo(tx,ty);cx.lineTo(m.x,m.y);cx.stroke();
+      if(m.y>H+60||m.x<-120)M[k]=mk(false);
+    });
+  }
+  requestAnimationFrame(tick);
+}
+if(!matchMedia('(prefers-reduced-motion: reduce)').matches)tick();
+
+render();
+</script>
+</body>
+</html>
