@@ -121,6 +121,7 @@ const S=[
 {t:'q3',ch:1,ic:'help',title:'確認クイズ①',q:'次のうち、肝臓のはたらき「ではない」ものはどれ？',opts:['凝固因子（血を固める成分）を作る','空腹時にブドウ糖を作る','全身へ酸素を運ぶ'],ans:2,hint:'酸素を運ぶのは赤血球です。肝臓の仕事を思い出してみましょう。',exp:'肝臓は凝固因子の産生、糖新生（ブドウ糖づくり）、解毒などを担います。酸素の運搬は赤血球の役割です。'},
 // 第2章
 {t:'t1',ch:2,ic:'jaundice',title:'主な症状',key:'初期は症状が少ない。進むと **黄疸・腹水・意識の変化** が現れます。',body:['脂肪肝：ほとんど無症状、疲れやすい、お腹の張り','アルコール性肝炎：食欲低下、吐き気、腹痛、発熱、**黄疸**','肝硬変：黄疸、むくみ、**腹水**、かゆみ、手のひらの赤み、出血しやすい、意識の混乱','腹水・むくみは、アルブミン低下・門脈圧の上昇・塩分と水分の貯留が重なって起こる']},
+{t:'t3',ch:2,ic:'flask',title:'低アルブミンとむくみ・腹水',key:'肝臓は **アルブミン** を作る唯一の臓器。減ると水分を血管内に保てません。',flow:[['肝機能の低下','アルブミンが作れない'],['血中アルブミンの低下','水分を血管内に保つ力が下がる'],['水分が血管の外へ','血管外にしみ出す'],['むくみ・腹水','お腹や足に水がたまる']],note:'栄養不足や炎症も関わります。水分がたまると血液が薄まり、アルブミンの一部は腹水へ漏れます。半減期は約3週間と長く、低アルブミンは慢性的な肝機能低下のサインです。門脈圧の上昇や塩分・水分の貯留も加わります。'},
 {t:'t3',ch:2,ic:'drop',title:'出血しやすくなる仕組み',key:'**凝固因子の不足** と **血小板の減少** が重なります。',flow:[['肝機能の低下','凝固因子が作れない'],['門脈圧の上昇','肝臓への血流が滞る'],['脾臓が腫れる','血小板がたまり、血中で減る'],['出血しやすい','鼻血・あざ・消化管出血']],note:'肝硬変では、検査値（PT-INRなど）だけでは出血のしやすさを正確に測れません。血小板の減少には、産生低下やアルコールの影響も関わります。'},
 {t:'t1',ch:2,ic:'siren',title:'食道・胃静脈瘤の破裂',key:'肝硬変で最も危険な出血のひとつ。**大量吐血** につながります。',body:['血流が滞り、代わりの血管に圧がかかってこぶ状に膨らむ','破れると大量に出血することがある','現場の着眼点：吐血、黒い便（タール便）、顔色・脈拍・血圧の変化','症状のない血液検査異常だけで凝固因子を補充することは通常しない（出血時・処置前は医師が判断）'],img:'varix',pos:'body'},
 {t:'fill',ch:2,ic:'pen',title:'虫食いクイズ①',text:'肝臓は出血を止めるための{0}を作る。肝硬変で肝臓への血流が滞ると、{1}の圧が上がり、食道・胃の{2}が破裂して大量出血することがある。',ans:['凝固因子','門脈','静脈瘤'],exp:'肝機能が落ちて凝固因子が減り、門脈圧が上がって静脈瘤ができる。この二重の危険が出血の背景です。'},
@@ -207,7 +208,7 @@ function render(){
   else if(s.t==='t1'){key();if(s.img&&s.pos==='key'){const b=imgBox(s);b&&c.appendChild(b)}c.appendChild(bodyUl());if(s.img&&s.pos==='body'){const b=imgBox(s);b&&c.appendChild(b)}}
   else if(s.t==='t2'){key();const g=el('div','cols');const l=el('div');l.appendChild(bodyUl());g.append(l,imgBox(s));c.appendChild(g)}
   else if(s.t==='t3'){key();const f=el('div','flow');s.flow.forEach((p,k)=>{if(k)f.appendChild(el('div','arw','➜'));const b=el('div','box');b.append(el('b',null,p[0]),el('small',null,p[1]));f.appendChild(b)});c.appendChild(f);if(s.note)c.appendChild(el('p','note',s.note))}
-  else if(done[i])review(c,s);else if(s.t==='q3')q3(c,s);else if(s.t==='fill')fill(c,s);else free(c,s);
+  else if(s.t==='q3')q3(c,s);else if(s.t==='fill')fill(c,s);else free(c,s);
   stage.replaceChildren(c);stage.scrollTop=0;
   $('#chn').textContent=s.ch?'第'+s.ch+'章 '+CH[s.ch]:'タイトル';
   $('#cnt').textContent=(i+1)+' / '+S.length;
@@ -221,16 +222,9 @@ function nav(){pv.disabled=i===0;nx.disabled=i>=S.length-1||!allowed(i+1)}
 function finish(c,label,cls,lead,detail,stars){
   done[i]=true;nav();cut(label,cls,stars,lead,detail);
 }
-function review(c,s){
-  const q=s.text?s.text.replace(/\{(\d)\}/g,(m,k)=>'【'+s.ans[k]+'】'):s.q;
-  c.appendChild(el('p','q',q));
-  if(s.t==='q3')c.appendChild(el('p',null,'正解：'+s.opts[s.ans]));
-  c.appendChild(el('div','exp',s.exp));
-}
 function q3(c,s){
   c.appendChild(el('p','q',s.q));const bs=[];let hint=null;
   s.opts.forEach((o,k)=>{const b=el('button','opt',(k+1)+'. '+o);bs.push(b);b.onclick=()=>{
-    if(done[i])return;
     if(k===s.ans){b.classList.add('good');bs.forEach(x=>x.disabled=true);hint&&hint.remove();finish(c,'正解！','g','解説',s.exp,true)}
     else{b.classList.add('bad');b.disabled=true;if(!hint){hint=el('div','hint');c.appendChild(hint)}hint.textContent='ヒント：'+s.hint}
   };c.appendChild(b)});
@@ -240,7 +234,6 @@ function fill(c,s){
   s.text.split(/\{(\d)\}/).forEach((x,k)=>{if(k%2){const t=document.createElement('input');t.className='fi';t.maxLength=20;t.autocomplete='off';t.setAttribute('aria-label','空欄'+(+x+1));t.placeholder='（'+(+x+1)+'）';ins.push(t);p.appendChild(t)}else p.appendChild(document.createTextNode(x))});
   const b=el('button','act','答え合わせ');b.disabled=true;ins.forEach(t=>t.oninput=()=>{b.disabled=!ins.every(x=>x.value.trim())});
   b.onclick=()=>{
-    if(done[i])return;
     const sc=ins.map((t,k)=>norm(t.value)===norm(s.ans[k])?1:lev(norm(t.value),norm(s.ans[k])));
     const all=sc.every(v=>v===1),avg=sc.reduce((a,v)=>a+v,0)/sc.length;
     ins.forEach(t=>t.disabled=true);b.remove();
@@ -257,7 +250,7 @@ function free(c,s){
   c.appendChild(el('p','note','※自動判定は文字の一致度で行います。'));
   const b=el('button','act','回答する');b.disabled=true;t.oninput=()=>{b.disabled=!t.value.trim()};
   b.onclick=()=>{
-    if(done[i]||!t.value.trim())return;
+    if(!t.value.trim())return;
     const r=dice(norm(t.value),norm(s.ref));t.disabled=true;b.remove();
     if(r>=0.8)finish(c,'正解！','g','正解です。要点をしっかり押さえています。',s.exp,true);
     else if(r>=0.4)finish(c,'まあ正解！','v','まあ正解です。要点の一部が合っています。',s.exp);
