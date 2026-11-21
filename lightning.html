@@ -72,8 +72,8 @@ textarea{width:100%;min-height:5.5em;margin:4px 0 10px;resize:vertical}
 #chap,#cut,#flash,#lb{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 #chap{background:#000;z-index:60}
 #chap.on,#cut.on,#lb.on{opacity:1;pointer-events:auto}
-.c1{font-size:clamp(34px,8vw,80px);font-weight:900;color:var(--y);text-shadow:0 0 12px var(--y),0 0 32px #ffb800}
-.c2{font-size:clamp(16px,3vw,30px);color:var(--y);text-shadow:0 0 10px var(--y);margin-top:8px;text-align:center;padding:0 16px}
+.c1{font-size:clamp(56px,13vw,136px);font-weight:900;color:var(--y);text-shadow:0 0 12px var(--y),0 0 32px #ffb800}
+.c2{font-size:clamp(27px,5.1vw,51px);color:var(--y);text-shadow:0 0 10px var(--y);margin-top:8px;text-align:center;padding:0 16px}
 .ls{position:absolute;left:0;right:0;height:26%;overflow:hidden}
 .ls.t{top:0}.ls.b{bottom:0}
 .lz{position:absolute;height:2px;left:-40%;background:linear-gradient(90deg,transparent,#3a5bff,#9fb4ff);box-shadow:0 0 8px #3a5bff,0 0 16px #1e3cff;animation:sw .6s linear infinite}
@@ -100,6 +100,17 @@ textarea{width:100%;min-height:5.5em;margin:4px 0 10px;resize:vertical}
 .case .ct{font-weight:800;color:var(--y);margin-bottom:4px}
 .case div{margin:2px 0}
 .cs{white-space:pre-wrap;font-size:.8em;opacity:.8;margin:2px 0 4px}
+.card.ttl h2{font-size:clamp(44px,min(12vw,17vh),104px)}
+.card.ttl .c>p:not(.note){font-size:clamp(18px,min(4.4vw,6vh),38px)}
+@keyframes zi{from{transform:scale(.05);opacity:0}to{transform:none;opacity:1}}
+@keyframes zo{to{transform:scale(.05);opacity:0}}
+@keyframes rg{from{transform:scale(1);opacity:.9}to{transform:scale(45);opacity:0}}
+#cut.pp{overflow:hidden}
+#cut.pp::before{content:"";position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px;border-radius:50%;border:3px solid var(--y);box-shadow:0 0 20px var(--y),inset 0 0 12px var(--p);animation:rg .8s ease-out forwards;pointer-events:none}
+#cut.pp .pt{animation:zi .45s .05s both cubic-bezier(.2,1.3,.4,1)}
+#cut.pp .cx{animation:zi .5s .12s both cubic-bezier(.2,1.3,.4,1)}
+#cut.pp .go{animation:zi .45s .22s both cubic-bezier(.2,1.3,.4,1)}
+#cut.out .pt,#cut.out .cx,#cut.out .go{animation:zo .25s both}
 @media(max-width:700px){.flow .st{flex-direction:row;gap:10px;text-align:left;justify-content:flex-start}.t2 .g{grid-template-columns:1fr}.t2 .txt{order:-1}.flow{flex-direction:column}.ar{border:10px solid transparent;border-top:16px solid var(--y);border-bottom:0}}
 @media(max-width:600px){:root{--fs:17px}.card{padding:16px 16px;border-radius:16px}.tt h2{font-size:1.2em}.top{gap:6px}}
 @media(orientation:landscape) and (max-height:520px){.card{padding:10px 18px}.nav{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom))}.nb{padding:7px}.top{padding:4px 10px}.t4 .ic{width:3em;height:3em}.t4 h2{font-size:1.4em;margin:4px}}
@@ -144,10 +155,10 @@ const SIM=[
 ];
 const simv=["","","",""];
 const S=[
-{c:0,t:4,ic:"bolt",ti:"電撃傷",sub:"～見えない衝撃に対応するために～"},
+{c:0,t:4,ic:"bolt",ti:"[[電撃傷]]",sub:"～見えない衝撃に対応するために～"},
 {c:1,t:1,ic:"bolt",ti:"本スライドの目標",k:"電撃傷の[[隠れたリスク]]と現場での活動手順をマスターする。",b:[["bolt","[[リスクを知る]]：電撃傷に特有の危険性を理解する"],["hand","[[事例を知る]]：発生事例と受傷パターンを知る"],["shield","[[注意点を確認する]]：現場活動で注意すべきポイントを確認する"]]},
 {c:1,t:9,ic:"bolt",ti:"電撃傷の主な2つのタイプ",k:"ボタンをタップして、それぞれのタイプの解説を確認しよう。",bt:[{ic:"bolt",l:"真性電撃傷",ex:"[[真性電撃傷]]（直接接触）：コンセントや高圧線などに直接ふれ、体内に電気が流れる。抵抗で「[[ジュール熱]]」が生じ、筋肉・骨・神経・血管・内臓まで壊死することがある。"},{ic:"warn",l:"電気火傷",tt:"電気火傷／アーク熱傷",ex:"[[電気火傷／アーク熱傷]]（放電）：500〜2,500℃の火花や着衣の着火による体表のヤケド。通電時間が短ければ、深部の損傷は比較的少ない。"}],note:"※『熱傷診療ガイドライン改訂第3版』をもとに作成",im:["img01"]},
-{c:1,t:4,ic:"warn",ti:"「見た目は平気そう」が一番こわい",sub:"皮膚のヤケドが小さくても、体の中では強い電気と熱が走っていることがある。"},
+{c:1,t:4,ic:"warn",ti:"「見た目は平気そう」が[[一番こわい]]",sub:"皮膚のヤケドが小さくても、体の中では強い電気と熱が走っていることがある。"},
 {c:1,t:5,ic:"check",ti:"3択クイズ",q:"真性電撃傷で、体の深部の組織が傷つく主な原因はどれ？",ch:["ジュール熱","紫外線","低温やけど"],a:0,hint:"電気が体を通るとき、抵抗によって生まれる熱です。",ex:"体を電気が通る際の抵抗で[[ジュール熱]]が発生し、骨や筋肉など深部が壊死することがあります。"},
 {c:2,t:1,ic:"warn",ti:"電撃傷の主な4つのリスク",bi:["heart", "warn", "hand", "head"],k:"外見が軽くても、次の4つを常に疑う。",b:["[[01 心室細動]]：心臓が突然けいれんして動かなくなる（致死性不整脈）","[[02 DIC（播種性血管内凝固）]]：血を固める働きが壊れ、出血が止まりにくくなる","[[03 コンパートメント症候群]]：筋肉の腫れで血管が圧迫され、手足が壊死する","[[04 中枢性呼吸停止]]：脳の呼吸中枢が麻痺し、息ができなくなる"]},
 {c:2,t:3,ic:"heart",ti:"通電ルート①：心臓",nm:1,si:["bolt", "heart", "warn", "heart"],k:"電撃傷で直接死亡する原因の第1位は[[心室細動（VF）]]。",st:["心臓を電流が通過","心臓のリズムが乱れる","[[心室細動（VF）]]","突然の心停止"]},
@@ -200,24 +211,29 @@ function cut(kind,txt,ex,nx){
   const c=$("#cut"),col={ok:"#3ab0ff",mid:"#8fd0ff",ng:"#ff6a8a"}[kind];
   const star='<svg viewBox="0 0 100 100"><polygon fill="'+col+'" points="50,5 61,38 96,38 68,58 79,92 50,72 21,92 32,58 4,38 39,38"/></svg>';
   const x='<svg viewBox="0 0 100 100"><path d="M20 20 80 80M80 20 20 80" stroke="'+col+'" stroke-width="14" stroke-linecap="round"/></svg>';
-  c.innerHTML=(kind==="ng"?x:star)+"<b>"+esc(txt)+"</b>";
+  c.classList.remove("pp","out");c.innerHTML=(kind==="ng"?x:star)+"<b>"+esc(txt)+"</b>";
   clearTimeout(cutT);
   c.dataset.lock=nx?"1":"";
   if(ex){c.insertAdjacentHTML("beforeend",'<div class="cx">'+ex+'</div><button class="go">'+(nx?"次へ":"閉じる")+'</button>');c.querySelector("button").onclick=()=>{c.classList.remove("on");if(nx)go(cur+1)};c.classList.add("on")}
   else{c.classList.add("on");cutT=setTimeout(()=>c.classList.remove("on"),1800)}
 }
 function pop(t,ex){
-  const c=$("#cut");clearTimeout(cutT);c.dataset.lock="";
+  const c=$("#cut");clearTimeout(cutT);c.dataset.lock="";c.classList.remove("out");c.classList.add("pp");
   c.innerHTML='<b class="pt">'+esc(t)+'</b><div class="cx">'+h(ex)+'</div><button class="go">閉じる</button>';
-  c.querySelector("button").onclick=()=>c.classList.remove("on");c.classList.add("on");
+  c.querySelector("button").onclick=closeCut;c.classList.add("on");
 }
-$("#cut").addEventListener("click",e=>{const c=$("#cut");if(!c.dataset.lock&&!e.target.closest(".cx,button"))c.classList.remove("on")});
+function closeCut(){
+  const c=$("#cut");
+  if(c.classList.contains("pp")){c.classList.add("out");setTimeout(()=>c.classList.remove("on","out"),250)}
+  else c.classList.remove("on");
+}
+$("#cut").addEventListener("click",e=>{const c=$("#cut");if(!c.dataset.lock&&!e.target.closest(".cx,button"))closeCut()});
 const verdict=r=>r>=1?["ok","正解！"]:r>=0.4?["mid","まあ正解！"]:["ng","残念…"];
 
 /* ===== スライド描画 ===== */
 function listHtml(b,bi){return "<ul>"+b.map((x,j)=>Array.isArray(x)?'<li class="i">'+ico(x[0])+"<span>"+h(x[1])+"</span></li>":bi&&bi[j]?'<li class="i">'+ico(bi[j])+"<span>"+h(x)+"</span></li>":"<li><span>"+h(x)+"</span></li>").join("")+"</ul>"}
 function render(i){
-  const s=S[i],card=el("section","card t"+s.t);
+  const s=S[i],card=el("section","card t"+s.t+(i===0?" ttl":""));
   const badge='<span class="badge">Chapter 0'+s.c+"</span>";
   if(s.t===4){
     card.innerHTML='<div class="c">'+badge+"<div>"+ico(s.ic)+"</div><h2>"+h(s.ti)+"</h2><p>"+h(s.sub)+"</p>"+(s.meta?'<p class="note">'+esc(s.meta)+"</p>":"")+"</div>";
@@ -346,7 +362,7 @@ function go(n,jump){
 }
 prev.onclick=()=>go(cur-1);next.onclick=()=>go(cur+1);
 document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"){closeLb();{const c=$("#cut");if(!c.dataset.lock)c.classList.remove("on")}$("#menu").classList.remove("open");return}
+  if(e.key==="Escape"){closeLb();if(!$("#cut").dataset.lock)closeCut();$("#menu").classList.remove("open");return}
   if(/INPUT|TEXTAREA/.test((e.target||{}).tagName))return;
   if(e.key==="ArrowRight")go(cur+1);if(e.key==="ArrowLeft")go(cur-1);
 });
