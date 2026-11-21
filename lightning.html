@@ -95,6 +95,11 @@ textarea{width:100%;min-height:5.5em;margin:4px 0 10px;resize:vertical}
 .pb{flex:1 1 220px;display:flex;align-items:center;justify-content:center;gap:12px;padding:20px 14px;border-radius:16px;border:1px solid var(--p);background:rgba(60,50,160,.4);color:#fff;font:inherit;font-weight:800;font-size:1.15em;cursor:pointer;box-shadow:0 0 16px rgba(180,76,255,.3)}
 .sm{text-align:left;margin-top:14px}
 .sv{white-space:pre-wrap;margin:2px 0 10px;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.35)}
+.flow.big .st{font-size:1.15em}
+.case{margin:10px 0 14px;padding:12px 16px;border-radius:14px;background:rgba(0,0,0,.35);border:1px solid #3a5bff}
+.case .ct{font-weight:800;color:var(--y);margin-bottom:4px}
+.case div{margin:2px 0}
+.cs{white-space:pre-wrap;font-size:.8em;opacity:.8;margin:2px 0 4px}
 @media(max-width:700px){.flow .st{flex-direction:row;gap:10px;text-align:left;justify-content:flex-start}.t2 .g{grid-template-columns:1fr}.t2 .txt{order:-1}.flow{flex-direction:column}.ar{border:10px solid transparent;border-top:16px solid var(--y);border-bottom:0}}
 @media(max-width:600px){:root{--fs:17px}.card{padding:16px 16px;border-radius:16px}.tt h2{font-size:1.2em}.top{gap:6px}}
 @media(orientation:landscape) and (max-height:520px){.card{padding:10px 18px}.nav{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom))}.nb{padding:7px}.top{padding:4px 10px}.t4 .ic{width:3em;height:3em}.t4 h2{font-size:1.4em;margin:4px}}
@@ -131,8 +136,12 @@ const IMGS={img01:"img01.jpg",img02:"img02.jpg",img03:"img03.jpg"};
 const CH=["オープニング","電撃傷とは","4つの主なリスクと通電ルート","皮膚のサインと電流の種類","落雷現場と重症度判定","現場活動の手順"];
 /* t:1=本文 2=画像+本文 3=図解 4=アイコン/タイトル 5=3択 6=虫食い 7=自由記載 8=総合シミュレーション
    強調語は [[語]]、本文リストは文字列、または [アイコン,文字列] */
-const SIMQ="【想定】工事現場で、30代男性が高圧線に接触して転倒。意識はあり「平気」と話す。右手のひらに小さな焦げあとがある。各フェーズで、あなたの活動を記入してください。";
-const PH=["フェーズ1：安全確認（3S）","フェーズ2：体表・手足の評価","フェーズ3：意識・神経・全身観察","フェーズ4：介入と搬送"];
+const SIM=[
+{t:"指令内容",c:["工事現場で、30代男性が高圧線に接触して転倒。意識はあるが、反応が悪い。"],q:"フェーズ1　想起疾患とブリーフィング"},
+{t:"状況",c:["現場到着。傷病者は高圧線の近くで仰臥位。"],q:"フェーズ2　あなたがここで行うことは？"},
+{t:"状況",c:["傷病者の安全は確保されました。","傷病者は、鼻血が出ており、右手のひらに小さな焦げあとがある。","意識清明　呼吸様式正常範囲　橈骨動脈触知可　冷感なし　両手離握手可"],q:"フェーズ3　ここであなたが行うことは？"},
+{t:"車内収容",c:["バイタルサイン","JCS 0","呼吸数 20","脈拍数 90","血圧 105/80","体温 36.8℃","頭頂部と右親指に熱傷を認める","作業服を着ている"],q:"フェーズ4　ここであなたが行うことは？"}
+];
 const simv=["","","",""];
 const S=[
 {c:0,t:4,ic:"bolt",ti:"電撃傷",sub:"～見えない衝撃に対応するために～"},
@@ -148,9 +157,10 @@ const S=[
 {c:3,t:2,ic:"hand",ti:"皮膚のサイン",bi:["hand", "warn", "bolt"],k:"小さな[[焦げあと]]は、奥にある大きなダメージの入り口かもしれない。",b:["電気の出入口に、白っぽい・焦げた「[[電流斑]]」ができることがある。","交流では、関節の曲がる側（手のひら・ひじの内側・わきの下）の[[屈側熱傷]]を確認する。","火花による[[アーク熱傷]]は主に体表のヤケドで、体内を通電した真性電撃傷とは仕組みが違う。"],im:["img02"]},
 {c:3,t:9,ic:"bolt",ti:"交流（AC）と直流（DC）",k:"電流の種類で、起きやすい受傷パターンが違う。ボタンをタップして確認しよう。",bt:[{ic:"hand",l:"交流（AC）",ex:"[[交流（AC）]]：筋肉が収縮し続けて手を離せなくなる（固着）。家庭用100V・高圧線6,600Vで起こりやすく、通電時間が長くなりがち。"},{ic:"bolt",l:"直流（DC）",ex:"[[直流（DC）]]：一瞬の強い筋けいれんで数メートル弾き飛ばされる。落雷・車のバッテリーなどで起こりやすい。飛ばされた先での[[転倒・落下]]による頭部外傷や骨折も疑い、全身の観察と固定も行う。"}],im:["img03"]},
 {c:3,t:5,ic:"check",ti:"3択クイズ",q:"交流の電気で起こりやすい「手を離せなくなる」現象はどれ？",ch:["筋肉が収縮し続けて離せなくなる（固着）","一瞬で数メートル弾き飛ばされる","皮膚の表面だけが焦げる"],a:0,hint:"電線や器具を「つかんだまま」になるイメージです。",ex:"交流は筋肉を強く収縮させ続けるため[[固着]]が起こり、通電時間が長くなりがちです。"},
-{c:4,t:1,ic:"shield",ti:"リバーストリアージと重症度",bi:["heart", "shield", "warn"],k:"落雷現場では「心停止＝黒タグ」のルールが[[逆転]]する。",b:["落雷の心停止は、心筋の不可逆的な損傷ではなく[[電気的な一時停止]]であることが多いとされる。","胸骨圧迫・人工呼吸・AEDで心拍再開・社会復帰の可能性があるため、CPAは「何が何でも[[赤]]」。","電撃傷は皮膚の熱傷面積（%TBSA）が小さくても、原則すべて[[重症熱傷]]（CQ1-3／Artz・ABLS基準）。「緑（軽症）だな」は最悪のシナリオの入口。"]},
+{c:4,t:1,ic:"shield",ti:"落雷現場のリバーストリアージ",bi:["heart","shield"],k:"落雷現場では「心停止＝黒タグ」のルールが[[逆転]]する。",b:["落雷の心停止は、心筋の不可逆的な損傷ではなく[[電気的な一時停止]]であることが多いとされる。","胸骨圧迫・人工呼吸・AEDで心拍再開・社会復帰の可能性があるため、CPAは「何が何でも[[赤]]」。"]},
+{c:4,t:1,ic:"warn",ti:"熱傷の緊急度・重症度判定",bi:["shield","warn"],k:"電撃傷は、その時点で即「[[赤（重症）]]」。",b:["電撃傷は皮膚の熱傷面積（%TBSA）が小さくても、原則すべて[[重症熱傷]]（CQ1-3／Artz・ABLS基準）。","「緑（軽症）だな」という安易な判断は、[[最悪のシナリオ]]の入口。"]},
 {c:4,t:7,ic:"doc",ti:"自由記載問題",q:"高圧線に接触した作業員が、会話ができて「痛くない」と言っています。皮膚の傷は右手のひらの小さな焦げあとだけです。搬送中に注意すべき点を自分の言葉で書いてください。",kw:[["心電図","モニター","12誘導"],["不整脈","心室細動","VF"],["急変","悪化","あとから","時間"],["腫れ","脈","コンパートメント","血流"],["重症"]],model:"会話できても急変し得るため[[重症]]として扱い、[[心電図モニター]]で[[不整脈（VF）]]を監視する。手足の[[腫れ・脈]]を繰り返し確認し、意識や麻痺の変化も見る。",ex:"キーワード：心電図／不整脈・VF／急変／腫れ・脈／重症"},
-{c:5,t:3,ic:"check",ti:"電撃傷での5つのポイント",si:["shield", "hand", "hand", "head", "heart"],k:"順番に落ち着いて観察し、「隠れた重症」を見つける。",st:["①[[3S]]：自分・現場・傷病者（電源遮断）","②体表の熱傷・出入口と屈側","③手足の腫れと脈","④意識・神経の変化","⑤心電図モニター・除細動パッド"]},
+{c:5,t:3,ic:"check",ti:"電撃傷での5つのポイント",na:1,big:1,si:["shield", "hand", "hand", "head", "heart"],k:"順番に落ち着いて観察し、「隠れた重症」を見つける。",st:["①[[3S]]：自分・現場・傷病者（電源遮断）","②体表の熱傷・出入口と屈側","③手足の腫れと脈","④意識・神経の変化","⑤心電図モニター・除細動パッド"]},
 {c:5,t:1,ic:"heart",ti:"ガイドライン推奨と受傷直後の注意",bi:["heart", "hand", "shield"],k:"[[会話できても安心しない]]：あとから急に悪化することがある。",b:["CQ8-1：心電図モニター・12誘導心電図の実施を強く推奨（推奨度D）。病院到着まで波形を見続ける。","CQ8-2：血流障害に対する[[減張切開]]を強く推奨（推奨度D）。橈骨動脈・足背動脈の脈、しびれ、動かしにくさを繰り返し確認する。","救助者の安全が最優先。ケガ人にふれる前に[[電源遮断]]を確認し、二次感電を防ぐ。"]},
 ...[0,1,2,3].map(n=>({c:5,t:8,ic:"doc",ti:"総合シミュレーション "+(n+1)+" / 4",n:n})),
 {c:5,t:4,ic:"check",ti:"まとめ：目に見えない命を救うために",sum:1,sub:"「体の中の火傷」を想像し、次の医療へしっかりつなぐ。"}
@@ -226,8 +236,8 @@ function render(i){
       g.append(imgs(s.im),tx);card.append(g);
     }else if(s.t===3){
       card.append(el("p","key",h(s.k)));
-      const f=el("div","flow");
-      s.st.forEach((x,j)=>{if(j)f.append(el("div","ar"));f.append(el("div","st",(s.si&&s.si[j]?ico(s.si[j]):"")+(s.nm?'<span class="cn">'+String(j+1).padStart(2,"0")+"</span>":"")+"<span>"+h(x)+"</span>"))});
+      const f=el("div","flow"+(s.big?" big":""));
+      s.st.forEach((x,j)=>{if(j&&!s.na)f.append(el("div","ar"));f.append(el("div","st",(s.si&&s.si[j]?ico(s.si[j]):"")+(s.nm?'<span class="cn">'+String(j+1).padStart(2,"0")+"</span>":"")+"<span>"+h(x)+"</span>"))});
       card.append(f);
     }else if(s.t===5)quiz(s,i,card);
     else if(s.t===6)cloze(s,i,card);
@@ -284,9 +294,11 @@ function free(s,i,card){
   card.append(t,b,fb);
 }
 function sim(s,i,card){
-  card.append(el("p","key",h(SIMQ)));
-  card.append(el("div","lb2",esc(PH[s.n])));
-  const t=el("textarea");t.maxLength=800;t.value=simv[s.n];t.setAttribute("aria-label",PH[s.n]);
+  const c=SIM[s.n],box=el("div","case");
+  box.append(el("div","ct",esc(c.t)));
+  c.c.forEach(x=>box.append(el("div","",esc(x))));
+  card.append(box,el("div","lb2",esc(c.q)));
+  const t=el("textarea");t.maxLength=800;t.value=simv[s.n];t.setAttribute("aria-label",c.q);
   done[i]=!!simv[s.n].trim();
   t.oninput=()=>{simv[s.n]=t.value;done[i]=!!t.value.trim();upd()};
   card.append(t);
@@ -302,10 +314,14 @@ function btns(s,card){
 function summary(card){
   const w=el("div","sm");
   w.append(el("p","key","あなたの入力内容"));
-  PH.forEach((n,j)=>{w.append(el("div","lb2",esc(n)));const p=el("p","sv");p.textContent=simv[j].trim()||"（未記入）";w.append(p)});
+  SIM.forEach((c,j)=>{
+    w.append(el("div","lb2",esc("シミュレーション "+(j+1)+" / 4　"+c.q)));
+    const cs=el("p","cs");cs.textContent="【"+c.t+"】\n"+c.c.join("\n");w.append(cs);
+    const p=el("p","sv");p.textContent=simv[j].trim()||"（未記入）";w.append(p);
+  });
   const cp=el("button","go","全記入内容をコピー"),m=el("span","note","");
   cp.onclick=()=>{
-    const txt="【総合シミュレーション】\n"+SIMQ+"\n\n"+PH.map((n,j)=>n+"\n"+simv[j]).join("\n\n");
+    const txt="【総合シミュレーション】\n\n"+SIM.map((c,j)=>"■シミュレーション "+(j+1)+" / 4\n【"+c.t+"】\n"+c.c.join("\n")+"\n"+c.q+"\n回答：\n"+(simv[j].trim()||"（未記入）")).join("\n\n");
     const ok=()=>{m.textContent="　コピーしました"};
     const fb=()=>{const a=document.createElement("textarea");a.value=txt;document.body.append(a);a.select();try{document.execCommand("copy");ok()}catch(e){m.textContent="　コピーに失敗しました"}a.remove()};
     if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(txt).then(ok,fb);else fb();
