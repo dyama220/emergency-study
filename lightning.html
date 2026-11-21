@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>電撃傷 ～見えない衝撃に対応するために～</title>
+<style>
+:root{--y:#ffe600;--n:#2a4bff;--p:#b44cff;--k:#ff4fa8;--o:#ff8a00;--fs:clamp(17px,1.9vw,22px)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:#05030f;color:#eef;font:var(--fs)/1.75 system-ui,"Hiragino Sans","Noto Sans JP",sans-serif;overflow:hidden}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+#app{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+.top{display:flex;align-items:center;gap:10px;padding:8px 12px}
+.tb{background:rgba(30,25,70,.7);color:#fff;border:1px solid #6a5cff;border-radius:10px;padding:6px 12px;font:inherit;font-size:.85em;cursor:pointer}
+.bar{flex:1;height:6px;background:rgba(255,255,255,.15);border-radius:6px;overflow:hidden}
+#fill{height:100%;width:0;background:linear-gradient(90deg,var(--y),var(--p),var(--k));transition:width .4s}
+#cnt{font-size:.85em;min-width:4.5em;text-align:right}
+#stage{flex:1;overflow:auto;padding:8px 14px;display:flex;-webkit-overflow-scrolling:touch}
+.card{position:relative;margin:auto;width:100%;max-width:1000px;background:rgba(18,14,44,.68);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:20px;padding:24px 32px;animation:in .4s}
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:2px;background:linear-gradient(120deg,var(--y),var(--n),var(--p),var(--k),var(--y));background-size:300% 300%;animation:flow 5s linear infinite alternate;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+@keyframes flow{from{background-position:0% 50%}to{background-position:100% 50%}}
+@keyframes in{from{opacity:0;transform:translateY(12px)}}
+em{font-style:normal;font-weight:800;background:linear-gradient(90deg,var(--y),var(--p),var(--k),var(--y));background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:flow 3s linear infinite alternate}
+.badge{display:inline-block;font-size:.75em;font-weight:700;color:#000;background:linear-gradient(90deg,var(--y),var(--o));border-radius:20px;padding:1px 12px}
+.tt{display:flex;align-items:center;gap:10px;margin:6px 0 10px}
+.tt h2{font-size:1.35em;line-height:1.35}
+.ic{width:2em;height:2em;flex:none;filter:drop-shadow(0 0 6px var(--p))}
+.key{font-weight:700;font-size:1.08em;margin-bottom:10px;padding-left:12px;border-left:4px solid var(--y)}
+ul{list-style:none;padding:0}
+li{margin:8px 0;display:flex;gap:10px;align-items:flex-start}
+li::before{content:"";flex:none;width:8px;height:8px;margin-top:.65em;background:var(--y);box-shadow:0 0 8px var(--y);transform:rotate(45deg)}
+li.i::before{display:none}
+li .ic{width:1.5em;height:1.5em;margin-top:.1em}
+.note{font-size:.75em;opacity:.7;margin-top:8px}
+.imgs{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.imgs img,.ph{flex:1 1 220px;max-width:100%;max-height:260px;object-fit:contain;border-radius:12px;border:1px solid #6a5cff;cursor:zoom-in;background:#0008}
+.ph{display:flex;align-items:center;justify-content:center;min-height:140px;font-size:.8em;opacity:.7;cursor:default;border-style:dashed}
+.t2 .g{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:center}
+.t2 .imgs{margin:0}
+.flow{display:flex;gap:6px;align-items:stretch;margin-top:14px}
+.st{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;text-align:center;padding:14px 8px;border-radius:14px;background:rgba(60,50,160,.35);border:1px solid #6a5cff;font-size:.92em}
+.st .ic{width:1.6em;height:1.6em}
+.ar{flex:none;align-self:center;width:0;height:0;border:10px solid transparent;border-left:16px solid var(--y);border-right:0;filter:drop-shadow(0 0 4px var(--y))}
+.t4 .c{text-align:center;padding:20px 0}
+.t4 .ic{width:4.5em;height:4.5em}
+.t4 h2{font-size:1.9em;margin:12px 0;line-height:1.3}
+.t4 p{opacity:.9}
+.opt{display:block;width:100%;text-align:left;margin:8px 0;padding:12px 14px;border-radius:12px;border:1px solid #6a5cff;background:rgba(40,35,110,.5);color:#fff;font:inherit;cursor:pointer}
+.opt.ok{border-color:#3ab0ff;background:rgba(40,120,255,.35)}
+.opt.ng{opacity:.45;text-decoration:line-through}
+.fb{margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.35);min-height:1px}
+.fb:empty{display:none}
+.cz{line-height:2.6}
+input[type=text],textarea{background:#0b0824;color:#fff;border:1px solid var(--p);border-radius:8px;font:inherit;padding:4px 8px}
+input[type=text]{width:7.5em;margin:0 4px;text-align:center}
+textarea{width:100%;min-height:5.5em;margin:4px 0 10px;resize:vertical}
+.go{margin-top:10px;padding:9px 22px;border:0;border-radius:12px;color:#000;font:inherit;font-weight:700;background:linear-gradient(90deg,var(--y),var(--o));cursor:pointer}
+.go:disabled{opacity:.4}
+.lb2{font-weight:700;color:var(--y)}
+.nav{display:flex;gap:12px;padding:10px 14px calc(10px + env(safe-area-inset-bottom))}
+.nb{flex:1;max-width:320px;margin:auto;padding:12px;border:0;border-radius:14px;color:#fff;font:inherit;font-weight:700;text-shadow:0 0 4px #000,0 0 2px #000;background:linear-gradient(90deg,var(--y),var(--n),var(--y));background-size:300% 100%;animation:flow 4s linear infinite alternate;cursor:pointer}
+.nb:disabled{opacity:.35;animation:none}
+#menu{position:fixed;z-index:20;left:calc(8px + env(safe-area-inset-left));top:calc(52px + env(safe-area-inset-top));display:none;flex-direction:column;gap:8px;max-width:calc(100vw - 20px)}
+#menu.open{display:flex}
+#menu.open::before{content:"";position:fixed;inset:0;z-index:-1;background:rgba(0,0,0,.85);animation:fd .3s}
+@keyframes fd{from{opacity:0}}
+.cb{display:flex;gap:12px;align-items:center;text-align:left;padding:10px 16px;border-radius:12px;border:1px solid var(--p);background:rgba(15,10,40,.92);color:#fff;font:inherit;cursor:pointer;opacity:0;animation:sl .35s forwards}
+@keyframes sl{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:none}}
+.cn{font-weight:800;white-space:nowrap;background:linear-gradient(90deg,var(--o),var(--p),var(--o));background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:flow 2.5s linear infinite alternate}
+#chap,#cut,#flash,#lb{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+#chap{background:#000;z-index:60}
+#chap.on,#cut.on,#lb.on{opacity:1;pointer-events:auto}
+.c1{font-size:clamp(34px,8vw,80px);font-weight:900;color:var(--y);text-shadow:0 0 12px var(--y),0 0 32px #ffb800}
+.c2{font-size:clamp(16px,3vw,30px);color:var(--y);text-shadow:0 0 10px var(--y);margin-top:8px;text-align:center;padding:0 16px}
+.ls{position:absolute;left:0;right:0;height:26%;overflow:hidden}
+.ls.t{top:0}.ls.b{bottom:0}
+.lz{position:absolute;height:2px;left:-40%;background:linear-gradient(90deg,transparent,#3a5bff,#9fb4ff);box-shadow:0 0 8px #3a5bff,0 0 16px #1e3cff;animation:sw .6s linear infinite}
+@keyframes sw{to{left:110%}}
+#cut{background:rgba(0,0,10,.75);z-index:70;cursor:pointer}
+#cut>svg{width:min(40vw,170px);filter:drop-shadow(0 0 16px #3ab0ff);animation:pop .5s}
+#cut>b{font-size:clamp(30px,8vw,64px);color:#fff;text-shadow:0 0 14px #3ab0ff,0 0 30px #1e3cff;margin-top:8px}
+#cut .cx{width:min(90vw,640px);margin:14px 16px 0;padding:12px 16px;border-radius:12px;background:rgba(20,16,60,.85);border:1px solid #3a5bff;text-align:left;max-height:38dvh;overflow:auto;cursor:default}
+@keyframes pop{from{transform:scale(.2) rotate(-90deg);opacity:0}}
+#flash{background:radial-gradient(circle,transparent 30%,rgba(0,170,255,.7));z-index:40}
+#flash.on{animation:fl .6s}
+@keyframes fl{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+#lb{background:rgba(0,0,0,.92);z-index:80}
+.lbw{padding:5px;border-radius:14px;background:linear-gradient(120deg,var(--k),var(--o),var(--y),var(--p),var(--k));background-size:300% 300%;animation:flow 3s linear infinite alternate;max-width:94vw;max-height:84dvh}
+.lbw img{display:block;max-width:100%;max-height:calc(84dvh - 10px);border-radius:10px;background:#000}
+#lbx{position:absolute;top:calc(12px + env(safe-area-inset-top));right:14px;width:42px;height:42px;border-radius:50%;border:1px solid #fff;background:#000a;color:#fff;font-size:22px;cursor:pointer}
+@media(max-width:700px){.flow .st{flex-direction:row;gap:10px;text-align:left;justify-content:flex-start}.t2 .g{grid-template-columns:1fr}.t2 .txt{order:-1}.flow{flex-direction:column}.ar{border:10px solid transparent;border-top:16px solid var(--y);border-bottom:0}}
+@media(max-width:600px){:root{--fs:17px}.card{padding:16px 16px;border-radius:16px}.tt h2{font-size:1.2em}.top{gap:6px}}
+@media(orientation:landscape) and (max-height:520px){.card{padding:10px 18px}.nav{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom))}.nb{padding:7px}.top{padding:4px 10px}.t4 .ic{width:3em;height:3em}.t4 h2{font-size:1.4em;margin:4px}}
+@media(min-width:900px){.card{padding:36px 48px}#stage{padding:14px 30px}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="ig" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe600"/><stop offset=".55" stop-color="#b44cff"/><stop offset="1" stop-color="#ff4fa8"/></linearGradient></defs></svg>
+<div id="app">
+  <div class="top">
+    <button class="tb" id="menuBtn" aria-label="Chapter目次">目次</button>
+    <div class="bar"><div id="fill"></div></div>
+    <span id="cnt">0 / 0</span>
+    <button class="tb" id="fsBtn" aria-label="全画面">全画面</button>
+  </div>
+  <main id="stage"></main>
+  <div class="nav">
+    <button class="nb" id="prev">前へ</button>
+    <button class="nb" id="next">次へ</button>
+  </div>
+</div>
+<div id="menu"></div>
+<div id="chap"></div>
+<div id="cut"></div>
+<div id="flash"></div>
+<div id="lb"><button id="lbx" aria-label="閉じる">×</button><div class="lbw"><img id="lbi" alt=""></div></div>
+
+<script>
+"use strict";
+/* ===== データ ===== */
+const IMGS={img01:"img01.jpg",img02:"img02.jpg",img03:"img03.jpg"};
+const CH=["オープニング","電撃傷とは","4つの主なリスクと通電ルート","皮膚のサインと電流の種類","落雷現場と重症度判定","現場活動の手順"];
+/* t:1=本文 2=画像+本文 3=図解 4=アイコン/タイトル 5=3択 6=虫食い 7=自由記載 8=総合シミュレーション
+   強調語は [[語]]、本文リストは文字列、または [アイコン,文字列] */
+const S=[
+{c:0,t:4,ic:"bolt",ti:"電撃傷",sub:"～見えない衝撃に対応するために～"},
+{c:1,t:1,ic:"bolt",ti:"本スライドの目標",k:"電撃傷の[[隠れたリスク]]と現場での活動手順をマスターする。",b:[["bolt","[[リスクを知る]]：電撃傷に特有の危険性を理解する"],["hand","[[事例を知る]]：発生事例と受傷パターンを知る"],["shield","[[注意点を確認する]]：現場活動で注意すべきポイントを確認する"]]},
+{c:1,t:2,ic:"bolt",ti:"電撃傷の主な2つのタイプ",bi:["bolt", "warn"],k:"電流が体内を通るか、火花の熱を受けるかで分けて考える。",b:["[[真性電撃傷]]（直接接触）：コンセントや高圧線などに直接ふれ、体内に電気が流れる。抵抗で「[[ジュール熱]]」が生じ、筋肉・骨・神経・血管・内臓まで壊死することがある。","[[電気火傷／アーク熱傷]]（放電）：500〜2,500℃の火花や着衣の着火による体表のヤケド。通電時間が短ければ、深部の損傷は比較的少ない。"],note:"※『熱傷診療ガイドライン改訂第3版』をもとに作成",im:["img01"]},
+{c:1,t:4,ic:"warn",ti:"「見た目は平気そう」が一番こわい",sub:"皮膚のヤケドが小さくても、体の中では強い電気と熱が走っていることがある。"},
+{c:1,t:5,ic:"check",ti:"3択クイズ",q:"真性電撃傷で、体の深部の組織が傷つく主な原因はどれ？",ch:["ジュール熱","紫外線","低温やけど"],a:0,hint:"電気が体を通るとき、抵抗によって生まれる熱です。",ex:"体を電気が通る際の抵抗で[[ジュール熱]]が発生し、骨や筋肉など深部が壊死することがあります。"},
+{c:2,t:1,ic:"warn",ti:"電撃傷の主な4つのリスク",bi:["heart", "warn", "hand", "head"],k:"外見が軽くても、次の4つを常に疑う。",b:["[[01 心室細動]]：心臓が突然けいれんして動かなくなる（致死性不整脈）","[[02 DIC（播種性血管内凝固）]]：血を固める働きが壊れ、出血が止まりにくくなる","[[03 コンパートメント症候群]]：筋肉の腫れで血管が圧迫され、手足が壊死する","[[04 中枢性呼吸停止]]：脳の呼吸中枢が麻痺し、息ができなくなる"]},
+{c:2,t:3,ic:"heart",ti:"通電ルート①：心臓",si:["bolt", "heart", "warn", "heart"],k:"電撃傷で直接死亡する原因の第1位は[[心室細動（VF）]]。",st:["心臓を電流が通過","心臓のリズムが乱れる","[[心室細動（VF）]]","突然の心停止"]},
+{c:2,t:3,ic:"head",ti:"通電ルート②：頭部",si:["bolt", "head", "warn"],k:"外から見て大きな傷がなくても、突然息が止まることがある。",st:["頭部へ通電","延髄（呼吸中枢）が麻痺","[[中枢性呼吸停止]]"]},
+{c:2,t:3,ic:"hand",ti:"通電ルート③④：手足の深部と血管",si:["hand", "warn", "hand", "warn", "shield"],k:"表面は軽そうでも、奥で壊死と血流障害が進む。",st:["ジュール熱で筋肉・骨が壊死","血管内壁の損傷・血栓","強い腫れ・区画内圧の上昇","[[コンパートメント症候群]]","病院で[[減張切開]]"]},
+{c:2,t:6,ic:"doc",ti:"虫食いクイズ",q:"空欄に入る言葉を答えましょう。",tx:"電撃傷で直接亡くなる原因の第1位は{}で、頭部への通電では{}の麻痺による呼吸停止に注意する。",an:[["心室細動","VF"],["延髄","呼吸中枢"]],ex:"心臓への通電で[[心室細動（VF）]]、頭部への通電で呼吸中枢の[[延髄]]が麻痺すると[[中枢性呼吸停止]]を起こします。"},
+{c:3,t:2,ic:"hand",ti:"皮膚のサイン",bi:["hand", "warn", "bolt"],k:"小さな[[焦げあと]]は、奥にある大きなダメージの入り口かもしれない。",b:["電気の出入口に、白っぽい・焦げた「[[電流斑]]」ができることがある。","交流では、関節の曲がる側（手のひら・ひじの内側・わきの下）の[[屈側熱傷]]を確認する。","火花による[[アーク熱傷]]は主に体表のヤケドで、体内を通電した真性電撃傷とは仕組みが違う。"],im:["img02"]},
+{c:3,t:1,ic:"bolt",ti:"交流（AC）と直流（DC）",bi:["hand", "bolt", "warn"],k:"電流の種類で、起きやすい受傷パターンが違う。",b:["[[交流（AC）]]：筋肉が収縮し続けて手を離せなくなる（固着）。家庭用100V・高圧線6,600Vで起こりやすく、通電時間が長くなりがち。","[[直流（DC）]]：一瞬の強い筋けいれんで数メートル弾き飛ばされる。落雷・車のバッテリーなどで起こりやすい。","飛ばされた先での[[転倒・落下]]による頭部外傷や骨折も疑い、全身の観察と固定も行う。"],im:["img03"],pos:"body"},
+{c:3,t:5,ic:"check",ti:"3択クイズ",q:"交流の電気で起こりやすい「手を離せなくなる」現象はどれ？",ch:["筋肉が収縮し続けて離せなくなる（固着）","一瞬で数メートル弾き飛ばされる","皮膚の表面だけが焦げる"],a:0,hint:"電線や器具を「つかんだまま」になるイメージです。",ex:"交流は筋肉を強く収縮させ続けるため[[固着]]が起こり、通電時間が長くなりがちです。"},
+{c:4,t:1,ic:"shield",ti:"リバーストリアージと重症度",bi:["heart", "shield", "warn"],k:"落雷現場では「心停止＝黒タグ」のルールが[[逆転]]する。",b:["落雷の心停止は、心筋の不可逆的な損傷ではなく[[電気的な一時停止]]であることが多いとされる。","胸骨圧迫・人工呼吸・AEDで心拍再開・社会復帰の可能性があるため、CPAは「何が何でも[[赤]]」。","電撃傷は皮膚の熱傷面積（%TBSA）が小さくても、原則すべて[[重症熱傷]]（CQ1-3／Artz・ABLS基準）。「緑（軽症）だな」は最悪のシナリオの入口。"]},
+{c:4,t:7,ic:"doc",ti:"自由記載問題",q:"高圧線に接触した作業員が、会話ができて「痛くない」と言っています。皮膚の傷は右手のひらの小さな焦げあとだけです。搬送中に注意すべき点を自分の言葉で書いてください。",kw:[["心電図","モニター","12誘導"],["不整脈","心室細動","VF"],["急変","悪化","あとから","時間"],["腫れ","脈","コンパートメント","血流"],["重症"]],model:"会話できても急変し得るため[[重症]]として扱い、[[心電図モニター]]で[[不整脈（VF）]]を監視する。手足の[[腫れ・脈]]を繰り返し確認し、意識や麻痺の変化も見る。",ex:"キーワード：心電図／不整脈・VF／急変／腫れ・脈／重症"},
+{c:5,t:3,ic:"check",ti:"電撃傷での5つのポイント",si:["shield", "hand", "hand", "head", "heart"],k:"順番に落ち着いて観察し、「隠れた重症」を見つける。",st:["①[[3S]]：自分・現場・傷病者（電源遮断）","②体表の熱傷・出入口と屈側","③手足の腫れと脈","④意識・神経の変化","⑤心電図モニター・除細動パッド"]},
+{c:5,t:1,ic:"heart",ti:"ガイドライン推奨と受傷直後の注意",bi:["heart", "hand", "shield"],k:"[[会話できても安心しない]]：あとから急に悪化することがある。",b:["CQ8-1：心電図モニター・12誘導心電図の実施を強く推奨（推奨度D）。病院到着まで波形を見続ける。","CQ8-2：血流障害に対する[[減張切開]]を強く推奨（推奨度D）。橈骨動脈・足背動脈の脈、しびれ、動かしにくさを繰り返し確認する。","救助者の安全が最優先。ケガ人にふれる前に[[電源遮断]]を確認し、二次感電を防ぐ。"]},
+{c:5,t:8,ic:"doc",ti:"総合シミュレーション",q:"【想定】工事現場で、30代男性が高圧線に接触して転倒。意識はあり「平気」と話す。右手のひらに小さな焦げあとがある。各フェーズで、あなたの活動を記入してください。",ph:["フェーズ1：安全確認（3S）","フェーズ2：体表・手足の評価","フェーズ3：意識・神経・全身観察","フェーズ4：介入と搬送"]},
+{c:5,t:4,ic:"check",ti:"まとめ：目に見えない命を救うために",sub:"「体の中の火傷」を想像し、次の医療へしっかりつなぐ。"}
+];
+const N=S.length-1;
+S[0].meta="全"+N+"枚・全"+(CH.length-1)+" Chapter＋タイトル画面";
+
+/* ===== 共通 ===== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const h=s=>esc(s).replace(/\[\[(.+?)\]\]/g,"<em>$1</em>");
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.innerHTML=x;return e};
+const IC={bolt:"M13 2 4 14h6l-1 8 9-12h-6z",heart:"M12 21s-8-5.3-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.7-8 11-8 11z",head:"M12 3a7 7 0 0 0-7 7c0 3 1.5 4.5 3 6v5h8v-5c1.5-1.5 3-3 3-6a7 7 0 0 0-7-7z",hand:"M7 11V5a1.5 1.5 0 0 1 3 0v5V3.5a1.5 1.5 0 0 1 3 0V10V5a1.5 1.5 0 0 1 3 0v8c0 4-2 8-6 8-3 0-5-2-6-5l-2-4a1.5 1.5 0 0 1 3-1z",shield:"M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5z",warn:"M12 3 1 21h22zM11 10h2v5h-2zm0 6h2v2h-2z",check:"M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z",doc:"M6 2h8l6 6v14H6zM14 3v6h6"};
+const ico=n=>'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#ig)" fill-rule="evenodd" d="'+IC[n]+'"/></svg>';
+const norm=s=>String(s).normalize("NFKC").replace(/\s/g,"").toLowerCase();
+const stage=$("#stage");
+let cur=0,busy=false;const done={},st={},res={};
+
+/* ===== 画像 ===== */
+function imgs(keys){
+  const d=el("div","imgs");
+  keys.forEach(k=>{
+    const im=new Image();im.alt="スライド画像 "+k;im.loading="lazy";im.src=IMGS[k];
+    im.onclick=()=>openLb(im.src,im.alt);
+    im.onerror=()=>{const p=el("div","ph");p.textContent=IMGS[k]+"（画像未配置）";im.replaceWith(p)};
+    d.append(im);
+  });
+  return d;
+}
+function openLb(src,alt){$("#lbi").src=src;$("#lbi").alt=alt;$("#lb").classList.add("on")}
+function closeLb(){$("#lb").classList.remove("on")}
+$("#lb").addEventListener("click",e=>{if(e.target.id==="lb"||e.target.id==="lbx")closeLb()});
+
+/* ===== カットイン ===== */
+let cutT;
+function cut(kind,txt,ex){
+  const c=$("#cut"),col={ok:"#3ab0ff",mid:"#8fd0ff",ng:"#ff6a8a"}[kind];
+  const star='<svg viewBox="0 0 100 100"><polygon fill="'+col+'" points="50,5 61,38 96,38 68,58 79,92 50,72 21,92 32,58 4,38 39,38"/></svg>';
+  const x='<svg viewBox="0 0 100 100"><path d="M20 20 80 80M80 20 20 80" stroke="'+col+'" stroke-width="14" stroke-linecap="round"/></svg>';
+  c.innerHTML=(kind==="ng"?x:star)+"<b>"+esc(txt)+"</b>";
+  clearTimeout(cutT);
+  if(ex){c.insertAdjacentHTML("beforeend",'<div class="cx">'+ex+'</div><button class="go">閉じる</button>');c.classList.add("on")}
+  else{c.classList.add("on");cutT=setTimeout(()=>c.classList.remove("on"),1800)}
+}
+$("#cut").addEventListener("click",()=>$("#cut").classList.remove("on"));
+const verdict=r=>r>=1?["ok","正解！"]:r>=0.4?["mid","まあ正解！"]:["ng","残念…"];
+
+/* ===== スライド描画 ===== */
+function listHtml(b,bi){return "<ul>"+b.map((x,j)=>Array.isArray(x)?'<li class="i">'+ico(x[0])+"<span>"+h(x[1])+"</span></li>":bi&&bi[j]?'<li class="i">'+ico(bi[j])+"<span>"+h(x)+"</span></li>":"<li><span>"+h(x)+"</span></li>").join("")+"</ul>"}
+function render(i){
+  const s=S[i],card=el("section","card t"+s.t);
+  const badge='<span class="badge">Chapter 0'+s.c+"</span>";
+  if(s.t===4){
+    card.innerHTML='<div class="c">'+badge+"<div>"+ico(s.ic)+"</div><h2>"+h(s.ti)+"</h2><p>"+h(s.sub)+"</p>"+(s.meta?'<p class="note">'+esc(s.meta)+"</p>":"")+"</div>";
+  }else{
+    card.innerHTML=badge+'<div class="tt">'+ico(s.ic)+"<h2>"+h(s.ti)+"</h2></div>";
+    if(s.t===1){
+      if(s.k)card.append(el("p","key",h(s.k)));
+      if(s.im&&s.pos==="key")card.append(imgs(s.im));
+      card.insertAdjacentHTML("beforeend",listHtml(s.b,s.bi));
+      if(s.im&&s.pos==="body")card.append(imgs(s.im));
+    }else if(s.t===2){
+      const g=el("div","g"),tx=el("div","txt");
+      tx.append(el("p","key",h(s.k)));tx.insertAdjacentHTML("beforeend",listHtml(s.b,s.bi));
+      if(s.note)tx.append(el("p","note",esc(s.note)));
+      g.append(imgs(s.im),tx);card.append(g);
+    }else if(s.t===3){
+      card.append(el("p","key",h(s.k)));
+      const f=el("div","flow");
+      s.st.forEach((x,j)=>{if(j)f.append(el("div","ar"));f.append(el("div","st",(s.si&&s.si[j]?ico(s.si[j]):"")+"<span>"+h(x)+"</span>"))});
+      card.append(f);
+    }else if(s.t===5)quiz(s,i,card);
+    else if(s.t===6)cloze(s,i,card);
+    else if(s.t===7)free(s,i,card);
+    else if(s.t===8)sim(s,i,card);
+  }
+  stage.replaceChildren(card);stage.scrollTop=0;
+}
+function quiz(s,i,card){
+  card.append(el("p","key",h(s.q)));
+  const box=el("div"),fb=el("div","fb");
+  s.ch.forEach((c,j)=>{
+    const b=el("button","opt",h(c));
+    if(done[i]&&j===s.a)b.classList.add("ok");
+    b.onclick=()=>{
+      if(done[i])return;
+      if(j===s.a){done[i]=1;b.classList.add("ok");cut("ok","正解！","<b>解説</b>　"+h(s.ex));fb.innerHTML="<b>解説</b>　"+h(s.ex);upd()}
+      else{b.classList.add("ng");b.disabled=true;fb.innerHTML="<b>ヒント</b>　"+h(s.hint)}
+    };
+    box.append(b);
+  });
+  if(done[i])fb.innerHTML="<b>解説</b>　"+h(s.ex);
+  card.append(box,fb);
+}
+function cloze(s,i,card){
+  card.append(el("p","key",h(s.q)));
+  const p=el("p","cz"),ins=[];
+  s.tx.split("{}").forEach((t,j,a)=>{
+    p.append(document.createTextNode(t));
+    if(j<a.length-1){const x=el("input");x.type="text";x.maxLength=30;x.placeholder="？";x.autocomplete="off";x.setAttribute("aria-label","空欄"+(j+1));x.value=(st[i]||[])[j]||"";x.disabled=!!done[i];ins.push(x);p.append(x)}
+  });
+  const b=el("button","go","答え合わせ"),fb=el("div","fb");
+  if(done[i]){b.disabled=true;fb.innerHTML=res[i]}
+  b.onclick=()=>{
+    const v=ins.map(x=>x.value);st[i]=v;
+    const k=v.filter((x,j)=>s.an[j].some(a=>norm(a)===norm(x))).length,r=k/s.an.length,vd=verdict(r);
+    res[i]="<b>一致 "+k+" / "+s.an.length+"</b><br>答え："+s.an.map(a=>esc(a[0])).join("、")+"<br><b>解説</b>　"+h(s.ex);
+    fb.innerHTML=res[i];done[i]=1;b.disabled=true;ins.forEach(x=>x.disabled=true);cut(vd[0],vd[1],res[i]);upd();
+  };
+  card.append(p,b,fb);
+}
+function free(s,i,card){
+  card.append(el("p","key",h(s.q)));
+  const t=el("textarea");t.maxLength=600;t.value=st[i]||"";t.disabled=!!done[i];t.setAttribute("aria-label","回答");
+  const b=el("button","go","答え合わせ"),fb=el("div","fb");
+  if(done[i]){b.disabled=true;fb.innerHTML=res[i]}
+  b.onclick=()=>{
+    const v=t.value;if(!v.trim()){fb.textContent="回答を入力してください。";return}
+    st[i]=v;const k=s.kw.filter(g=>g.some(w=>norm(v).includes(norm(w)))).length,r=k/s.kw.length,vd=verdict(r);
+    res[i]="<b>一致キーワード "+k+" / "+s.kw.length+"</b><br><b>模範解答</b>　"+h(s.model)+"<br>"+esc(s.ex);
+    fb.innerHTML=res[i];done[i]=1;b.disabled=true;t.disabled=true;cut(vd[0],vd[1],res[i]);upd();
+  };
+  card.append(t,b,fb);
+}
+function sim(s,i,card){
+  card.append(el("p","key",h(s.q)));
+  const v=st[i]||(st[i]=["","","",""]),tas=[];
+  const chk=()=>{done[i]=v.every(x=>x.trim());cp.disabled=!done[i];upd()};
+  s.ph.forEach((n,j)=>{
+    card.append(el("div","lb2",esc(n)));
+    const t=el("textarea");t.maxLength=800;t.value=v[j];t.setAttribute("aria-label",n);
+    t.oninput=()=>{v[j]=t.value;chk()};tas.push(t);card.append(t);
+  });
+  const cp=el("button","go","全記入内容をコピー"),m=el("span","note","");
+  cp.disabled=!done[i];
+  cp.onclick=()=>{
+    const txt="【総合シミュレーション】\n"+s.q+"\n\n"+s.ph.map((n,j)=>n+"\n"+v[j]).join("\n\n");
+    const ok=()=>{m.textContent="　コピーしました"};
+    const fb=()=>{const a=document.createElement("textarea");a.value=txt;document.body.append(a);a.select();try{document.execCommand("copy");ok()}catch(e){m.textContent="　コピーに失敗しました"}a.remove()};
+    if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(txt).then(ok,fb);else fb();
+  };
+  card.append(cp,m);
+}
+
+/* ===== ナビ ===== */
+const prev=$("#prev"),next=$("#next");
+const locked=()=>[5,6,7,8].includes(S[cur].t)&&!done[cur];
+function upd(){
+  prev.disabled=cur===0;next.disabled=cur===N||locked();
+  next.textContent=cur===0?"スタート":"次へ";
+  $("#fill").style.width=(cur/N*100)+"%";
+  $("#cnt").textContent=cur+" / "+N;
+}
+function go(n,jump){
+  if(busy||n<0||n>N||n===cur)return;
+  if(!jump&&n>cur&&locked())return;
+  const chg=S[n].c!==S[cur].c;cur=n;render(cur);upd();
+  if(chg)chapter(S[cur].c);
+}
+prev.onclick=()=>go(cur-1);next.onclick=()=>go(cur+1);
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){closeLb();$("#menu").classList.remove("open");return}
+  if(/INPUT|TEXTAREA/.test((e.target||{}).tagName))return;
+  if(e.key==="ArrowRight")go(cur+1);if(e.key==="ArrowLeft")go(cur-1);
+});
+
+/* ===== Chapter演出・目次 ===== */
+function lasers(cls){
+  const d=el("div","ls "+cls);
+  for(let i=0;i<22;i++){const z=el("div","lz"),w=20+Math.random()*30;
+    z.style.top=(Math.random()*100)+"%";z.style.width=w+"%";z.style.animationDelay=(-Math.random()*1)+"s";z.style.animationDuration=(0.35+Math.random()*0.5)+"s";d.append(z)}
+  return d;
+}
+function chapter(c){
+  busy=true;const o=$("#chap");
+  o.replaceChildren(lasers("t"),el("div","c1","Chapter 0"+c),el("div","c2",esc(CH[c])),lasers("b"));
+  o.classList.add("on");
+  setTimeout(()=>{o.classList.remove("on");busy=false},1500);
+}
+const menu=$("#menu");
+$("#menuBtn").onclick=e=>{
+  e.stopPropagation();
+  if(menu.classList.toggle("open")){
+    menu.replaceChildren();
+    CH.forEach((n,c)=>{
+      const b=el("button","cb",'<span class="cn">Chapter 0'+c+"</span><span>"+esc(n)+"</span>");
+      b.style.animationDelay=(c*0.08)+"s";
+      b.onclick=ev=>{
+        ev.stopPropagation();menu.classList.remove("open");
+        const f=$("#flash");f.classList.remove("on");void f.offsetWidth;f.classList.add("on");
+        go(S.findIndex(x=>x.c===c),true);
+      };
+      menu.append(b);
+    });
+  }
+};
+document.addEventListener("click",e=>{if(e.target===menu||!menu.contains(e.target))menu.classList.remove("open")});
+
+/* ===== 全画面 ===== */
+const fs=$("#fsBtn"),root=document.documentElement;
+if(!root.requestFullscreen)fs.style.display="none";
+fs.onclick=()=>{if(document.fullscreenElement)document.exitFullscreen();else root.requestFullscreen().catch(()=>{})};
+
+/* ===== 背景の電撃 ===== */
+(function(){
+  const cv=$("#bg"),cx=cv.getContext("2d");let W,H,bolts=[];
+  const rs=()=>{const d=Math.min(window.devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*d;cv.height=H*d;cx.setTransform(d,0,0,d,0,0)};
+  rs();addEventListener("resize",rs);
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function spawn(){
+    let x=Math.random()*W,y=Math.random()*H,a=Math.random()*Math.PI*2;const pts=[[x,y]],n=6+Math.floor(Math.random()*8);
+    for(let i=0;i<n;i++){a+=(Math.random()-.5)*1.4;const l=20+Math.random()*50;x+=Math.cos(a)*l;y+=Math.sin(a)*l;pts.push([x,y])}
+    bolts.push({p:pts,t:0,life:350+Math.random()*450,c:Math.random()<.5?"#ffe600":"#3a5bff",w:Math.random()<.2?2:1});
+  }
+  let last=performance.now(),acc=0;
+  function loop(now){
+    const dt=now-last;last=now;acc+=dt;
+    while(acc>(reduce?600:110)){acc-=(reduce?600:110);if(bolts.length<26)spawn()}
+    cx.clearRect(0,0,W,H);cx.lineJoin="round";
+    bolts=bolts.filter(b=>(b.t+=dt)<b.life);
+    bolts.forEach(b=>{
+      const a=1-b.t/b.life;cx.globalAlpha=a*(Math.random()<.2?.4:.9);cx.strokeStyle=b.c;cx.shadowColor=b.c;cx.shadowBlur=10;cx.lineWidth=b.w;
+      cx.beginPath();b.p.forEach((q,i)=>i?cx.lineTo(q[0],q[1]):cx.moveTo(q[0],q[1]));cx.stroke();
+    });
+    cx.globalAlpha=1;requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+
+render(0);upd();
+</script>
+</body>
+</html>
