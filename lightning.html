@@ -264,7 +264,6 @@ function render(i){
         const bx=el("div","st",(s.si&&s.si[j]?ico(s.si[j]):"")+(s.nm?'<span class="cn">'+String(j+1).padStart(2,"0")+"</span>":"")+"<span>"+h(x)+"</span>");
         if(s.pu&&s.pu[j]){
           bx.classList.add("tp");bx.tabIndex=0;bx.setAttribute("role","button");
-          bx.insertAdjacentHTML("beforeend",'<span class="hint">タップで解説</span>');
           const open=()=>pop(s.pu[j].tt,s.pu[j]);
           bx.onclick=open;bx.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open()}};
         }
