@@ -149,7 +149,7 @@ const CH=["オープニング","電撃傷とは","4つの主なリスクと通�
    強調語は [[語]]、本文リストは文字列、または [アイコン,文字列] */
 const SIM=[
 {t:"指令内容",c:["工事現場で、30代男性が高圧線に接触して転倒。意識はあるが、反応が悪い。"],q:"フェーズ1　想起疾患とブリーフィング"},
-{t:"状況",c:["現場到着。傷病者は高圧線の近くで仰臥位。"],q:"フェーズ2　あなたがここで行うことは？"},
+{t:"状況",c:["現場到着。傷病者は高圧線の近くで仰臥位。"],im:["img06"],q:"フェーズ2　あなたがここで行うことは？"},
 {t:"状況",c:["傷病者の安全は確保されました。","傷病者は、鼻血が出ており、右手のひらに小さな焦げあとがある。","意識清明　呼吸様式正常範囲　橈骨動脈触知可　冷感なし　両手離握手可"],q:"フェーズ3　ここであなたが行うことは？"},
 {t:"車内収容",c:["バイタルサイン","JCS 0","呼吸数 20","脈拍数 90","血圧 105/80","体温 36.8℃","頭頂部と右親指に熱傷を認める","作業服を着ている"],q:"フェーズ4　ここであなたが行うことは？"}
 ];
@@ -313,7 +313,9 @@ function sim(s,i,card){
   const c=SIM[s.n],box=el("div","case");
   box.append(el("div","ct",esc(c.t)));
   c.c.forEach(x=>box.append(el("div","",esc(x))));
-  card.append(box,el("div","lb2",esc(c.q)));
+  card.append(box);
+  if(c.im)card.append(imgs(c.im));
+  card.append(el("div","lb2",esc(c.q)));
   const t=el("textarea");t.maxLength=800;t.value=simv[s.n];t.setAttribute("aria-label",c.q);
   done[i]=!!simv[s.n].trim();
   t.oninput=()=>{simv[s.n]=t.value;done[i]=!!t.value.trim();upd()};
