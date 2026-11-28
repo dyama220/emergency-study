@@ -95,6 +95,7 @@ background:linear-gradient(var(--navy2),var(--navy2)) padding-box,var(--rb) bord
 #rs{text-align:center;margin-top:18px}#rs .row{margin:12px 0}
 #gate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(2,4,18,.9);padding:16px;overflow:auto}
 #gc{width:min(100%,420px);text-align:center}#gc .row{margin:14px 0}
+.rbw{background:var(--rb);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:flow 3s linear infinite;filter:drop-shadow(0 0 6px rgba(255,255,255,.5))}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}.draw path{stroke-dashoffset:0}}
 </style>
 </head>
@@ -198,7 +199,7 @@ function render(){
  }
  var q=Q[i];showRabbit(false);
  if(q.t==="write"){renderWrite(q);return;}
- st.innerHTML='<div class="q"><p class="qt neon">'+q.q+'</p><div id="v">'+(q.t==="first"?'<div class="vis glyph" style="font-size:min(13vw,58px);aspect-ratio:auto;width:auto;margin:8px 0"><span class="wd">'+q.w+'</span></div>':vis(q.t==="pic"?"pic":"kanji",q.k))+'</div><button class="say" id="say" type="button">🔊 よむ</button><p class="hint" id="hint" aria-live="polite">&nbsp;</p><div class="ch" id="ch"></div><button class="next" id="nx" type="button" hidden>つぎへ ▶</button></div>';
+ st.innerHTML='<div class="q"><p class="qt neon">'+q.q.replace(/(ひらがな|カタカナ)/,'<span class="rbw">$1</span>')+'</p><div id="v">'+(q.t==="first"?'<div class="vis glyph" style="font-size:min(13vw,58px);aspect-ratio:auto;width:auto;margin:8px 0"><span class="wd">'+q.w+'</span></div>':vis(q.t==="pic"?"pic":"kanji",q.k))+'</div><button class="say" id="say" type="button">🔊 よむ</button><p class="hint" id="hint" aria-live="polite">&nbsp;</p><div class="ch" id="ch"></div><button class="next" id="nx" type="button" hidden>つぎへ ▶</button></div>';
  var ch=$("ch");
  pick3(q).forEach(function(v){
   var b=document.createElement("button");b.type="button";b.textContent=v;b.setAttribute("data-v",v);
@@ -257,7 +258,7 @@ function judge(q){var U=inkBin();if(!U)return{ok:false};var Ud=dil(U,5),uu=0,n;f
  return{ok:false,near:near,got:got};}
 function renderWrite(q){
  var st=$("stage");
- st.innerHTML='<div class="q"><p class="qt neon">'+(q.pr||"かんじで かいてみよう")+'</p><div class="yomi">'+(q.pr?'<span class="hl">'+q.q.charAt(0)+'</span><span class="dim">'+q.q.slice(1)+'</span>':q.q)+'</div><button class="say" id="say" type="button">🔊 よむ</button><div class="pad" id="pad"><div class="ghost" id="gh"></div><canvas id="cvw"></canvas></div><p class="hint" id="hint" aria-live="polite">ゆび・マウスで かいて「できた！」を おそう</p><div class="row"><button class="mini" id="clr" type="button">けす</button><button class="mini" id="go" type="button">できた！</button><button class="mini" id="ovr" type="button" hidden>おうちのひと OK</button></div><button class="next" id="nx" type="button" hidden>つぎへ ▶</button></div>';
+ st.innerHTML='<div class="q"><p class="qt neon">'+(q.pr||"かんじで かいてみよう").replace(/(ひらがな|カタカナ)/,'<span class="rbw">$1</span>')+'</p><div class="yomi">'+(q.pr?'<span class="hl">'+q.q.charAt(0)+'</span><span class="dim">'+q.q.slice(1)+'</span>':q.q)+'</div><button class="say" id="say" type="button">🔊 よむ</button><div class="pad" id="pad"><div class="ghost" id="gh"></div><canvas id="cvw"></canvas></div><p class="hint" id="hint" aria-live="polite">ゆび・マウスで かいて「できた！」を おそう</p><div class="row"><button class="mini" id="clr" type="button">けす</button><button class="mini" id="go" type="button">できた！</button><button class="mini" id="ovr" type="button" hidden>おうちのひと OK</button></div><button class="next" id="nx" type="button" hidden>つぎへ ▶</button></div>';
  var pad=$("pad"),gh=$("gh"),hint=$("hint"),r=Math.min(window.devicePixelRatio||1,2);
  cvw=$("cvw");pw=pad.clientWidth;cvw.width=cvw.height=pw*r;ctw=cvw.getContext("2d");ctw.scale(r,r);
  gh.textContent=q.a;gh.style.fontFamily=FF;gh.style.fontSize=(pw*.8)+"px";strokes=[];drawing=false;
