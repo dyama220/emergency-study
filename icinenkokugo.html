@@ -88,12 +88,20 @@ background:linear-gradient(var(--navy2),var(--navy2)) padding-box,var(--rb) bord
 .hl{display:inline-block;font-size:1.25em;font-weight:900;background:var(--rb);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:flow 3s linear infinite;filter:drop-shadow(0 0 6px #fff) drop-shadow(0 0 16px #b36bff);margin-right:.08em}
 .dim{color:rgba(255,255,255,.32);-webkit-text-fill-color:rgba(255,255,255,.32)}
 .wd{color:#fff;font-weight:900;text-shadow:0 0 12px rgba(150,170,255,.7)}
+.popfx{animation:popfx .75s cubic-bezier(.2,1.2,.3,1) both,bd 5s linear infinite}
+@keyframes popfx{0%{transform:scale(.05);opacity:0;filter:hue-rotate(0deg) drop-shadow(0 0 0 #f0f)}55%{opacity:1;filter:hue-rotate(260deg) drop-shadow(0 0 26px #fff)}75%{transform:scale(1.05)}100%{transform:none;opacity:1;filter:hue-rotate(360deg) drop-shadow(0 0 0 transparent)}}
+.flash{animation:flashfx .8s ease-out,bd 5s linear infinite}
+@keyframes flashfx{0%{filter:hue-rotate(0deg) drop-shadow(0 0 0 #f0f)}40%{filter:hue-rotate(200deg) drop-shadow(0 0 26px #fff)}100%{filter:hue-rotate(360deg) drop-shadow(0 0 0 transparent)}}
+#rs{text-align:center;margin-top:18px}#rs .row{margin:12px 0}
+#gate{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(2,4,18,.9);padding:16px;overflow:auto}
+#gc{width:min(100%,420px);text-align:center}#gc .row{margin:14px 0}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}.draw path{stroke-dashoffset:0}}
 </style>
 </head>
 <body>
 <canvas id="sky" aria-hidden="true"></canvas>
 <div id="cut" aria-hidden="true"><canvas id="fx"></canvas><div class="band"></div><div class="big neon">せいかい！</div></div>
+<div id="gate" hidden><div class="card" id="gc"></div></div>
 <main>
   <h1 class="neon glow">うさぎ もじ ギャラクシー</h1>
   <section class="card top">
@@ -101,7 +109,7 @@ background:linear-gradient(var(--navy2),var(--navy2)) padding-box,var(--rb) bord
     <div class="info"><div class="lv neon" id="lv"></div><div class="pips" id="pips"></div><button class="mini" id="home" type="button" style="min-height:40px;font-size:15px;margin-top:10px;padding:0 14px">◀ タイトルへ</button></div>
   </section>
   <section class="card" id="stage"></section>
-  <section class="card" id="menu" hidden><div class="menuh neon">なにを べんきょうする？</div><div class="modes"><button class="mode" id="m-hira" type="button"><b class="neon">あ</b><div><span class="neon">ひらがな</span><small></small></div></button><button class="mode" id="m-kata" type="button"><b class="neon">ア</b><div><span class="neon">かたかな</span><small></small></div></button><button class="mode" id="m-kanji" type="button"><b class="neon">山</b><div><span class="neon">かんじ</span><small></small></div></button></div></section>
+  <section class="card" id="menu" hidden><div class="menuh neon">なにを べんきょうする？</div><div class="modes"><button class="mode" id="m-hira" type="button"><b class="neon">あ</b><div><span class="neon">ひらがな</span><small></small></div></button><button class="mode" id="m-kata" type="button"><b class="neon">ア</b><div><span class="neon">かたかな</span><small></small></div></button><button class="mode" id="m-kanji" type="button"><b class="neon">山</b><div><span class="neon">かんじ</span><small></small></div></button></div><div id="rs"></div></section>
   <p class="note">きろくは この たんまつの なかだけ。 かきとりの はんていは かんたんです（おうちのひとの OKもできます）。</p>
 </main>
 <script>
@@ -133,14 +141,14 @@ var mode="kanji",CUR=D,TOT=80,Q=[],i=0,c=0,sg=0,wrong=0,done=false,sv="usagi-kan
 function off(){var t=0;for(var n=0;n<sg;n++)t+=STG[n].length;return t;}
 function setMode(m){mode=m;
  if(m==="kanji"){CUR=D;STG=STG0;sv="usagi-kanji-v3";}
- else{CUR=KANA[m].split(" ").map(function(x){var p=x.split("|");return{k:p[0],y:p[1],p:"□"+p[1].slice(1)};});STG=KSTG[m].split(" ").map(function(s){return s.split("");});sv="usagi-"+m+"-v1";}
+ else{var A=KANA.hira.split(" "),B=KANA.kata.split(" "),mine=m==="hira"?A:B,other=m==="hira"?B:A;CUR=mine.map(function(x,n){var p=x.split("|"),o=other[n].split("|");return{k:p[0],y:p[1],x:o[1],p:"□"+p[1].slice(1)};});STG=KSTG[m].split(" ").map(function(s){return s.split("");});sv="usagi-"+m+"-v1";}
  TOT=0;STG.forEach(function(s){TOT+=s.length;});IDX={};CUR.forEach(function(d,n){IDX[d.k]=n;});
  Q=[];i=0;c=0;sg=0;
  try{var s=JSON.parse(localStorage.getItem(sv)||"null");if(s&&s.q&&s.q.length&&s.i>=0&&s.i<=s.q.length){Q=s.q;i=s.i;c=s.c|0;sg=Math.min(Math.max(s.g|0,0),STG.length-1);}}catch(e){}
  if(!Q.length)Q=round();}
 function pat(k){for(var n=0;n<CUR.length;n++)if(CUR[n].k===k)return CUR[n].p;return "";}
 function round(){return STG[sg].map(function(k){var d=CUR[IDX[k]],r=Math.random(),art=mode==="kanji"?K[d.k]:0,t;
- if(mode!=="kanji"){if(r<.5)return{t:"first",k:d.k,w:d.y,q:"「"+d.y+"」は どの もじから はじまる？",a:d.k,opts:CUR.map(function(x){return x.k;})};return{t:"write",k:d.k,q:d.y,a:d.k,opts:[],ks:[d.k],pr:"はじめの もじを かこう"};}
+ if(mode!=="kanji"){if(r<.5)return{t:"first",k:d.k,w:d.x,q:"「"+d.x+"」の はじめの "+(mode==="hira"?"ひらがな":"カタカナ")+"は？",a:d.k,opts:CUR.map(function(x){return x.k;})};return{t:"write",k:d.k,q:d.x,a:d.k,opts:[],ks:[d.k],pr:"はじめの もじを "+(mode==="hira"?"ひらがな":"カタカナ")+"で かこう"};}
  if(art)t=r<.2?"pic":r<.4?"cnt":r<.6?"yomi":"write";else t=r<.4?"yomi":"write";
  if(t==="pic")return{t:t,k:d.k,q:"この えは どの かんじ？",a:d.k,opts:ORDER.slice()};
  if(t==="cnt")return{t:t,k:d.k,q:"「"+d.k+"」は なんかく かく？",a:art.s.length,opts:[2,3,4,5,6]};
@@ -181,7 +189,7 @@ function vis(mode,k){
 }
 function speak(t){try{var u=new SpeechSynthesisUtterance(t.replace(/[「」]/g,""));u.lang="ja-JP";u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}}
 function render(){
- var st=$("stage");done=false;wrong=0;
+ var st=$("stage");done=false;wrong=0;glow(st,"flash");
  if(i>=Q.length){
   showRabbit(false);
   var last=sg>=STG.length-1;st.innerHTML='<div class="end"><div class="neon glow" style="font-size:30px">'+(last?"ぜんぶ クリア！":"ステージ "+(sg+1)+" クリア！")+'</div><div style="width:150px;animation:hue 5s linear infinite">'+rabbit(off()+c)+'</div><p class="qt">'+(last?"うさぎは キラキラの おうさまに なったよ！":"つぎは ちょっと むずかしく なるよ！")+'</p><button class="next" id="again" type="button">'+(last?"もういちど あそぶ":"つぎのステージへ ▶")+'</button></div>';
@@ -267,19 +275,37 @@ function renderWrite(q){
   var J=judge(q);if(J.ok){win();return;}
   wrong++;clearInk();hint.className="hint";
   if(J.near)hint.textContent="かくすうが ちがうよ。 「"+J.near+"かく」で かいてみよう（いまは "+J.got+"かく）";
-  else if(wrong===1){if(q.pr){hint.textContent="おしい！ ひかっている もじを よく みて かこう";speak(q.q);}else hint.textContent="おしい！ ヒント：ことば「"+pat(q.a)+"」の □ だよ";}
+  else if(wrong===1){if(q.pr){hint.textContent="おしい！ ひかっている もじを "+(mode==="hira"?"ひらがな":"カタカナ")+"に なおしてみよう";speak(q.q);}else hint.textContent="おしい！ ヒント：ことば「"+pat(q.a)+"」の □ だよ";}
   else{gh.className="ghost on";hint.textContent="うすい もじが でたよ。 なぞってみよう！";}
   if(wrong>=3)$("ovr").hidden=false;
  };
+}
+/* 演出：popfx=画面中央から広がって七色に発光 / flash=七色に発光 */
+function glow(el,cls){el.classList.remove("popfx","flash");
+ if(cls==="popfx"){var r=el.getBoundingClientRect();el.style.transformOrigin=(innerWidth/2-r.left)+"px "+(innerHeight/2-r.top)+"px";}
+ void el.offsetWidth;el.classList.add(cls);}
+/* きろくのリセット（おうちのひと用：計算ゲート付き） */
+var KEYS={kanji:"usagi-kanji-v3",hira:"usagi-hira-v1",kata:"usagi-kata-v1"};
+function wipe(w){try{(w==="all"?["kanji","hira","kata"]:[w]).forEach(function(m){localStorage.removeItem(KEYS[m]);});if(w==="all"||w==="kanji"){localStorage.removeItem("usagi-kanji-v1");localStorage.removeItem("usagi-kanji-v2");}}catch(e){}}
+function resetUI(step,msg){
+ var el=step?$("gc"):$("rs");$("gate").hidden=!step;
+ if(!step){el.innerHTML='<button class="mini" id="rsb" type="button">きろくを けす（おうちのひと）</button>'+(msg?'<p class="note">'+msg+'</p>':'');$("rsb").onclick=function(){resetUI(1);};return;}
+ if(step===1){var a=2+Math.floor(Math.random()*8),b=2+Math.floor(Math.random()*8),ans=a+b;
+  el.innerHTML='<p class="qt">おうちのひと むけ： '+a+' + '+b+' = ?</p><div class="row" id="rg"></div><button class="mini" id="rc" type="button">やめる</button>';
+  shuffle([ans,ans+1,ans-1,ans+2]).forEach(function(v){var bt=document.createElement("button");bt.type="button";bt.className="mini";bt.textContent=v;bt.onclick=function(){if(v===ans)resetUI(2);else resetUI(0,"ちがうよ。 もういちど どうぞ");};$("rg").appendChild(bt);});
+  $("rc").onclick=function(){resetUI(0);};return;}
+ el.innerHTML='<p class="qt">どの きろくを けしますか？（もとには もどせません）</p><div class="row" id="rg"></div><button class="mini" id="rc" type="button">やめる</button>';
+ [["hira","ひらがな"],["kata","かたかな"],["kanji","かんじ"],["all","ぜんぶ"]].forEach(function(m){var bt=document.createElement("button");bt.type="button";bt.className="mini";bt.textContent=m[1];bt.onclick=function(){wipe(m[0]);title();resetUI(0,m[1]+" の きろくを けしました");};$("rg").appendChild(bt);});
+ $("rc").onclick=function(){resetUI(0);};
 }
 function title(){
  $("menu").hidden=false;document.querySelector(".top").hidden=true;$("stage").hidden=true;
  [["kanji","usagi-kanji-v3"],["hira","usagi-hira-v1"],["kata","usagi-kata-v1"]].forEach(function(m){var t="はじめから";
   try{var s=JSON.parse(localStorage.getItem(m[1])||"null");if(s&&s.q&&((s.g|0)>0||s.i>0))t="つづきから ステージ "+((s.g|0)+1);}catch(e){}
-  $("m-"+m[0]).querySelector("small").textContent=t;});
+  $("m-"+m[0]).querySelector("small").textContent=t;});resetUI(0);glow($("menu"),"popfx");
  window.scrollTo(0,0);
 }
-function start(m){setMode(m);$("menu").hidden=true;document.querySelector(".top").hidden=false;$("stage").hidden=false;render();window.scrollTo(0,0);}
+function start(m){setMode(m);$("menu").hidden=true;document.querySelector(".top").hidden=false;$("stage").hidden=false;render();window.scrollTo(0,0);glow(document.querySelector(".top"),"popfx");glow($("stage"),"popfx");}
 $("home").onclick=title;
 $("m-hira").onclick=function(){start("hira");};
 $("m-kata").onclick=function(){start("kata");};
