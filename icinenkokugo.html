@@ -146,10 +146,11 @@ function setMode(m){mode=m;
  TOT=0;STG.forEach(function(s){TOT+=s.length;});IDX={};CUR.forEach(function(d,n){IDX[d.k]=n;});
  Q=[];i=0;c=0;sg=0;
  try{var s=JSON.parse(localStorage.getItem(sv)||"null");if(s&&s.q&&s.q.length&&s.i>=0&&s.i<=s.q.length){Q=s.q;i=s.i;c=s.c|0;sg=Math.min(Math.max(s.g|0,0),STG.length-1);}}catch(e){}
+ if(m!=="kanji"&&Q.length&&Q.some(function(q){var d=CUR[IDX[q.a]];return !d||(q.t==="write"?q.q!==d.y:q.w!==d.y);})){Q=round();i=0;c=0;}
  if(!Q.length)Q=round();}
 function pat(k){for(var n=0;n<CUR.length;n++)if(CUR[n].k===k)return CUR[n].p;return "";}
 function round(){return STG[sg].map(function(k){var d=CUR[IDX[k]],r=Math.random(),art=mode==="kanji"?K[d.k]:0,t;
- if(mode!=="kanji"){if(r<.5)return{t:"first",k:d.k,w:d.x,q:"「"+d.x+"」の はじめの "+(mode==="hira"?"ひらがな":"カタカナ")+"は？",a:d.k,opts:CUR.map(function(x){return x.k;})};return{t:"write",k:d.k,q:d.x,a:d.k,opts:[],ks:[d.k],pr:"はじめの もじを "+(mode==="hira"?"ひらがな":"カタカナ")+"で かこう"};}
+ if(mode!=="kanji"){if(r<.5)return{t:"first",k:d.k,w:d.y,q:"「"+d.y+"」は どの もじから はじまる？",a:d.k,opts:CUR.map(function(x){return x.k;})};return{t:"write",k:d.k,q:d.y,a:d.k,opts:[],ks:[d.k],pr:"はじめの もじを かこう"};}
  if(art)t=r<.2?"pic":r<.4?"cnt":r<.6?"yomi":"write";else t=r<.4?"yomi":"write";
  if(t==="pic")return{t:t,k:d.k,q:"この えは どの かんじ？",a:d.k,opts:ORDER.slice()};
  if(t==="cnt")return{t:t,k:d.k,q:"「"+d.k+"」は なんかく かく？",a:art.s.length,opts:[2,3,4,5,6]};
@@ -173,7 +174,7 @@ function rabbit(n){
  if(st>=3)h+='<path d="M42 52L44 36L53 44L60 30L67 44L76 36L78 52Z" fill="#ffd23f" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="46" r="3" fill="#ff4d6d"/><text x="14" y="30" font-size="14" fill="#ffe94d">✦</text><text x="98" y="52" font-size="12" fill="#7ff">✦</text><text x="96" y="22" font-size="10" fill="#fff">✦</text>';
  return '<svg viewBox="0 0 120 150" role="img" aria-label="うさぎ">'+h+'</svg>';
 }
-function showRabbit(pop){if(pop)cutIn();
+function showRabbit(pop){if(pop){cutIn();setTimeout(function(){var n=$("nx");if(n&&!n.hidden)n.scrollIntoView({behavior:"smooth",block:"center"});},80);}
  var r=$("rabbit");r.style.setProperty("--c",Math.min((off()+c)/TOT*10,10));r.innerHTML=rabbit(off()+c);
  if(pop){setTimeout(function(){r.classList.remove("pop");void r.offsetWidth;r.classList.add("pop");},1100);}
  $("lv").textContent="ステージ "+(sg+1)+"/"+STG.length+"  うさぎ Lv."+(off()+c+1)+(off()+c>=TOT?" ★MAX":"");
@@ -276,7 +277,7 @@ function renderWrite(q){
   var J=judge(q);if(J.ok){win();return;}
   wrong++;clearInk();hint.className="hint";
   if(J.near)hint.textContent="かくすうが ちがうよ。 「"+J.near+"かく」で かいてみよう（いまは "+J.got+"かく）";
-  else if(wrong===1){if(q.pr){hint.textContent="おしい！ ひかっている もじを "+(mode==="hira"?"ひらがな":"カタカナ")+"に なおしてみよう";speak(q.q);}else hint.textContent="おしい！ ヒント：ことば「"+pat(q.a)+"」の □ だよ";}
+  else if(wrong===1){if(q.pr){hint.textContent="おしい！ ひかっている もじを よく みて かこう";speak(q.q);}else hint.textContent="おしい！ ヒント：ことば「"+pat(q.a)+"」の □ だよ";}
   else{gh.className="ghost on";hint.textContent="うすい もじが でたよ。 なぞってみよう！";}
   if(wrong>=3)$("ovr").hidden=false;
  };
